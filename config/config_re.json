@@ -1,0 +1,31 @@
+{
+"DetectorType" : "Retinanet",
+"modelPath": "/home/dl/Project/mmdetection/trace/retinanet_voc_trace.pt",
+"score_thr"  : 0.05,
+"nms_iou_thr"  : 0.5,
+"max_num"  : 100,
+"conf_thr" : 0.3,
+"nms_pre" : 1000,
+"use_sigmoid" : 1,
+"anchor_strides"  : [8, 16, 32, 64, 128],
+"target_means" : [0.0, 0.0, 0.0, 0.0],
+"target_stds" : [0.1, 0.1, 0.1, 0.1],
+
+"Transform" : {
+      "mean" : [123.675, 116.28, 103.53],
+      "std" : [58.395, 57.12, 57.375],
+      "to_rgb" : 1,
+      "img_scale" : [1333, 800],
+      "keep_ratio" : 1,
+      "pad" : 32
+},
+
+"Retinanet": {
+  "in_channels" : 256,
+  "stacked_convs" : 4,
+  "feat_channels" : 256,
+  "octave_base_scale" : 4,
+  "scales_per_octave" : 3,
+  "anchor_ratios" : [0.5, 1.0, 2.0]
+}
+}
