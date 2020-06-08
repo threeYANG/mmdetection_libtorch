@@ -1,0 +1,1 @@
+/usr/bin/g++ -fPIC   -shared -Wl,-soname,libnms.so -o libnms.so CMakeFiles/nms.dir/nms_generated_nms_kernel.cu.o  -L/usr/local/cuda/lib64 -Wl,-rpath,/usr/local/cuda/lib64 /usr/local/cuda/lib64/libcudart.so 

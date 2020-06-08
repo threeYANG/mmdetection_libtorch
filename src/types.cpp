@@ -1,22 +1,13 @@
 #include "types.hpp"
-<<<<<<< HEAD
 #include "utils/logging.hpp"
 #include "utils/json/json.h"
 #include "utils/json/json-forwards.h"
 using namespace Json;
 using namespace tunicornvideostruct;
 
-std::vector<std::string> detector_types = {"SSD", "Retinanet"};
+std::vector<std::string> detector_types = {"SSD", "Retinanet", "FasterRCNN"};
 
 
-=======
-
-#include "utils/logging.hpp"
-#include "utils/json/json.h"
-#include "utils/json/json-forwards.h"
-
-std::vector<std::string> detector_types = {"SSD"};
->>>>>>> b5eafd9d05aadaba42e84010fd92516eca896656
 
 int find_type(std::string Detectedtype) {
     for(int i = 0; i < detector_types.size(); i++) {
@@ -34,48 +25,123 @@ void print_type() {
     std::cout << std::endl;
 }
 
-<<<<<<< HEAD
-void ReadSSDParams(const Value& root, SSDParams& ssd_params){
-    // in_channels
-    const Value in_channels_arrays = root["SSD"]["in_channels"];
-    for (const auto & in_channels_array : in_channels_arrays) {
-        ssd_params.in_channels_.push_back(in_channels_array.asInt());
+
+void ReadTransformParams(const Value& root, TransformParams& transform) {
+    //mean_;
+    const Value mean_arrays = root["Transforms"]["mean"];
+    for (const auto & mean_array: mean_arrays) {
+        transform.mean_.push_back(mean_array.asFloat());
     }
+    //std_;
+    const Value std_arrays = root["Transforms"]["std"];
+    for (const auto & std_array: std_arrays) {
+        transform.std_.push_back(std_array.asFloat());
+    }
+    //to_rgb
+    transform.to_rgb_ = root["Transforms"]["to_rgb"].asInt();
+    //img_scale_;
+    const Value img_scale_arrays = root["Transforms"]["img_scale"];
+    for (const auto & img_scale_array: img_scale_arrays) {
+        transform.img_scale_.push_back(img_scale_array.asInt());
+    }
+    //keep_ratio_;
+    transform.keep_ratio_ = root["Transforms"]["keep_ratio"].asInt();
+    transform.pad_ = root["Transforms"]["pad"].asInt();
+}
+
+void ReadAnchorHeadParams(const Value& root, AnchorHeadParams& anchor_head) {
+    //anchor_strides
+    const Value step_arrays = root["AnchorHead" ]["anchor_strides"];
+    for (const auto & step_array : step_arrays) {
+        anchor_head.anchor_strides_.push_back(step_array.asInt());
+    }
+    //target_means_;
+    const Value target_means_arrays = root["AnchorHead" ]["target_means"];
+    for (const auto & target_means_array: target_means_arrays) {
+        anchor_head.target_means_.push_back(target_means_array.asFloat());
+    }
+    //target_stds_;
+    const Value target_stds_arrays = root["AnchorHead" ]["target_stds"];
+    for (const auto & target_stds_array: target_stds_arrays) {
+        anchor_head.target_stds_.push_back(target_stds_array.asFloat());
+    }
+    //nms_pre_;
+    anchor_head.nms_pre_ = root["AnchorHead" ]["nms_pre"].asInt();
+    //use_sigmoid_;
+    anchor_head.use_sigmoid_ = root["AnchorHead" ]["use_sigmoid"].asInt();
+    //nms_thresh_;
+    anchor_head.nms_thresh_ = root["AnchorHead" ]["nms_iou_thr"].asFloat();
+    //max_per_img_
+    anchor_head.max_per_img_ = root["AnchorHead"]["max_per_img"].asInt();
+    //score_thresh_
+    anchor_head.score_thresh_ = root["AnchorHead"]["score_thr"].asFloat();
+
+}
+
+void ReadRetinaHeadParams(const Value& root, RetinaHeadParams& RetinaHead) {
+    // anchor_ratios
+    const Value anchor_ratios_arrays = root["RetinaHead"]["anchor_ratios"];
+    for (const auto & anchor_ratios_array : anchor_ratios_arrays) {
+        RetinaHead.anchor_ratios_.push_back(anchor_ratios_array.asFloat());
+    }
+    RetinaHead.octave_base_scale_ = root["RetinaHead"]["octave_base_scale"].asInt();
+    RetinaHead.scales_per_octave_ = root["RetinaHead"]["scales_per_octave"].asInt();
+}
+
+void ReadSSDHeadParams(const Value& root, SSDHeadParams& SSDHead) {
     //basesize_ratio_range
-    const Value max_size_arrays = root["SSD"]["basesize_ratio_range"];
+    SSDHead.input_size_ = root["SSDHead"]["input_size"].asInt();
+    const Value max_size_arrays = root["SSDHead"]["basesize_ratio_range"];
     for (const auto & max_size_array : max_size_arrays) {
-        ssd_params.basesize_ratio_range_.push_back(max_size_array.asFloat());
+        SSDHead.basesize_ratio_range_.push_back(max_size_array.asFloat());
     }
     //aspect_ratios
-    const Value aspect_ratios_arrays = root["SSD"]["anchor_ratios"];
+    const Value aspect_ratios_arrays = root["SSDHead"]["anchor_ratios"];
     for (const auto & aspect_ratios_array : aspect_ratios_arrays) {
         std::vector<int> single;
         for(const auto & single_array: aspect_ratios_array) {
             single.push_back(single_array.asInt());
         }
-        ssd_params.anchor_ratios_.push_back(single);
+        SSDHead.anchor_ratios_.push_back(single);
     }
 }
 
-void ReadRetinanetParams(const Value& root, RetinanetParams& Retinanet){
-    // anchor_ratios
-    const Value anchor_ratios_arrays = root["Retinanet"]["anchor_ratios"];
+void ReadRPNHeadParams(const Value& root, RPNHeadParams& RPNHead) {
+    const Value anchor_ratios_arrays = root["RPNHead"]["anchor_ratios"];
     for (const auto & anchor_ratios_array : anchor_ratios_arrays) {
-        Retinanet.anchor_ratios_.push_back(anchor_ratios_array.asFloat());
+        RPNHead.anchor_ratios_.push_back(anchor_ratios_array.asFloat());
     }
-    Retinanet.in_channels_ = root["Retinanet"]["in_channels"].asInt();
-    Retinanet.feat_channels_ = root["Retinanet"]["feat_channels"].asInt();
-    Retinanet.stacked_convs_ = root["Retinanet"]["stacked_convs"].asInt();
-    Retinanet.octave_base_scale_ = root["Retinanet"]["octave_base_scale"].asInt();
-    Retinanet.scales_per_octave_ = root["Retinanet"]["scales_per_octave"].asInt();
+    const Value anchor_scales_arrays = root["RPNHead"]["anchor_scales"];
+    for (const auto & anchor_scales_array : anchor_scales_arrays) {
+        RPNHead.anchor_scales_.push_back(anchor_scales_array.asFloat());
+    }
+
+     RPNHead.nms_across_levels_ = root["RPNHead"]["nms_across_levels"].asInt();
+     RPNHead.nms_post_ = root["RPNHead"]["nms_post"].asInt();
+     RPNHead.max_num_ = root["RPNHead"]["max_num"].asInt();
+     RPNHead.min_bbox_size_ = root["RPNHead"]["min_bbox_size"].asInt();
+     RPNHead.class_num_ = root["RPNHead"]["class_num"].asInt();
+
+}
+
+void ReadRoiExtractorParams(const Value& root, RoiExtractorParams& RoiExtractor) {
+    RoiExtractor.type_ = root["RoiExtractor"]["type"].asString();
+    RoiExtractor.out_size_ = root["RoiExtractor"]["out_size"].asInt();
+    RoiExtractor.sample_num_ = root["RoiExtractor"]["sample_num"].asInt();
+    RoiExtractor.out_channels_ = root["RoiExtractor"]["out_channels"].asInt();
+
+    const Value featmap_strides_arrays = root["RoiExtractor"]["featmap_strides"];
+    for (const auto & featmap_strides_array : featmap_strides_arrays) {
+        RoiExtractor.featmap_strides_.push_back(featmap_strides_array.asInt());
+    }
+}
+
+void ReadFPNParams(const Value& root, FPNParams& fpn_params) {
+    fpn_params.out_channels_ = root["FPN"]["out_channels"].asInt();
+    fpn_params.num_outs_ = root["FPN"]["num_outs"].asInt();
 }
 
 int Params::Read(const std::string& config_file) {
-=======
-int Params::Read(const std::string& config_file) {
-    using namespace Json;
-    using namespace tunicornvideostruct;
->>>>>>> b5eafd9d05aadaba42e84010fd92516eca896656
     Reader reader;
     Value root;
     std::ifstream ifs(config_file);
@@ -84,107 +150,31 @@ int Params::Read(const std::string& config_file) {
         std::cout<<"can not parse "<<config_file;
         return -1;
     }
-<<<<<<< HEAD
     int type_ids = find_type(root["DetectorType"].asString());
     if (type_ids  == -1) {
-=======
-
-    int res = find_type(root["DetectorType"].asString());
-    if (res == -1) {
->>>>>>> b5eafd9d05aadaba42e84010fd92516eca896656
         std::cout << "only support:" <<std::endl;
         print_type();
         return -1;
     }
-<<<<<<< HEAD
     detector_type_ = static_cast<DetetorType>(type_ids );
     model_path_ = root["modelPath"].asString();
-    nms_thresh_ = root["nms_iou_thr"].asFloat();
-    score_thresh_ = root["score_thr"].asFloat();
     conf_thresh_ = root["conf_thr"].asFloat();
-    max_num_ = root["max_num"].asInt();
-    nms_pre_ = root["nms_pre"].asInt();
-    use_sigmoid_ = root["use_sigmoid"].asInt();
-    //anchor_strides
-    const Value step_arrays = root["anchor_strides"];
-    for (const auto & step_array : step_arrays) {
-        anchor_strides_.push_back(step_array.asInt());
-    }
-    //target_means_;
-    const Value target_means_arrays = root["target_means"];
-    for (const auto & target_means_array: target_means_arrays) {
-        target_means_.push_back(target_means_array.asFloat());
-    }
-    //target_stds_;
-    const Value target_stds_arrays = root["target_stds"];
-    for (const auto & target_stds_array: target_stds_arrays) {
-        target_stds_.push_back(target_stds_array.asFloat());
-    }
 
-    //mean_;
-    const Value mean_arrays = root["Transform"]["mean"];
-    for (const auto & mean_array: mean_arrays) {
-        transform_params_.mean_.push_back(mean_array.asFloat());
-    }
-    //std_;
-    const Value std_arrays = root["Transform"]["std"];
-    for (const auto & std_array: std_arrays) {
-        transform_params_.std_.push_back(std_array.asFloat());
-    }
-    //to_rgb
-    transform_params_.to_rgb_ = root["Transform"]["to_rgb"].asInt();
-    //img_scale_;
-    const Value img_scale_arrays = root["Transform"]["img_scale"];
-    for (const auto & img_scale_array: img_scale_arrays) {
-        transform_params_.img_scale_.push_back(img_scale_array.asInt());
-    }
-    //keep_ratio_;
-    transform_params_.keep_ratio_ = root["Transform"]["keep_ratio"].asInt();
-    transform_params_.pad_ = root["Transform"]["pad"].asInt();
+
+
+    ReadTransformParams(root, transform_params_);
+    ReadAnchorHeadParams(root, anchor_head_params_);
+
 
     if (detector_type_ == DetetorType::SSD ) {
-       ReadSSDParams(root, ssd_params_);
+        ReadSSDHeadParams(root, ssd_head_params_);
     } else if(detector_type_ == DetetorType::Retinanet) {
-       ReadRetinanetParams(root, retinanet_params_);
+        ReadRetinaHeadParams(root, retina_head_params_);
+    } else if (detector_type_ == DetetorType::FasterRcnn) {
+        ReadRPNHeadParams(root, rpn_head_params_);
+        ReadRoiExtractorParams(root, roi_extractor_params_);
+        ReadFPNParams(root, fpn_params_);
     }
     return 0;
 }
 
-=======
-    detector_type_ = static_cast<DetetorType>(res);
-    model_path_ = root["ModelPath"].asString();
-    net_size_ = root["NetSize"].asInt();
-    nms_thresh_ = root["nmsThresh"].asFloat();
-    // SSD
-    // feature_maps
-    const Value feature_maps_arrays = root["SSD"]["FeatureMaps"];
-    for (const auto & feature_maps_array : feature_maps_arrays) {
-        ssd_params_.feature_maps_.push_back(feature_maps_array.asInt());
-    }
-    //steps
-    const Value step_arrays = root["SSD"]["Steps"];
-    for (const auto & step_array : step_arrays) {
-        ssd_params_.steps_.push_back(step_array.asInt());
-    }
-    //min_size
-    const Value min_size_arrays = root["SSD"]["MinSize"];
-    for (const auto & min_size_array : min_size_arrays) {
-        ssd_params_.min_size_.push_back(min_size_array.asInt());
-    }
-    //max_size
-    const Value max_size_arrays = root["SSD"]["MaxSize"];
-    for (const auto & max_size_array : max_size_arrays) {
-        ssd_params_.max_size_.push_back(max_size_array.asInt());
-    }
-    //aspect_ratios
-    const Value aspect_ratios_arrays = root["SSD"]["AspectRatios"];
-    for (const auto & aspect_ratios_array : aspect_ratios_arrays) {
-        std::vector<int> single;
-        for(const auto & single_array: aspect_ratios_array) {
-            single.push_back(single_array.asInt());
-        }
-        ssd_params_.aspect_ratios_.push_back(single);
-    }
-    return 0;
-}
->>>>>>> b5eafd9d05aadaba42e84010fd92516eca896656

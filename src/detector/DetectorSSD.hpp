@@ -1,11 +1,11 @@
-#include "SingleStage.hpp"
+#include "DetectorCommon.hpp"
 #include "DetectorImpl.hpp"
 #include "AnchorGenerator.hpp"
 
 #define EPSILON 1e-6
 
 
-class DetectorSSD : public SingleStage , public DetectorImpl {
+class DetectorSSD : public DetectorCommon , public DetectorImpl {
 public:
     DetectorSSD();
     virtual ~DetectorSSD();
@@ -24,10 +24,10 @@ private:
     void get_min_max_size();
 
 private:
-    std::vector<int> in_channels_;
-    std::vector<float> basesize_ratio_range_;
-    std::vector<std::vector<int>> anchor_ratios_;
+
     std::vector<std::vector<float>> ratios_;
+
+    SSDHeadParams ssd_head_params_;
 
     std::vector<int>  min_sizes_;
     std::vector<int>  max_sizes_;

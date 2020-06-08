@@ -51,10 +51,10 @@ void AnchorGenerator::gen_base_anchors(){
     torch::round_(base_anchors_);
 }
 
-torch::Tensor AnchorGenerator::grid_anchors(const std::vector<int>& featmap_size, int stride, torch::DeviceType device) {
+torch::Tensor AnchorGenerator::grid_anchors(int stride, torch::DeviceType device) {
     base_anchors_ = base_anchors_.to(device);
-    int feat_h = featmap_size[0];
-    int feat_w = featmap_size[1];
+    int feat_h = feature_maps_sizes_[0];
+    int feat_w = feature_maps_sizes_[1];
 
     torch::Tensor shift_x = torch::arange(0, feat_w, device = device) * stride;
     torch::Tensor shift_y = torch::arange(0, feat_h, device = device) * stride;

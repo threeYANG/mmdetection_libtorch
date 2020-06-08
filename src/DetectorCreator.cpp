@@ -4,29 +4,22 @@
 
 #include "DetectorImpl.hpp"
 #include "DetectorSSD.hpp"
-<<<<<<< HEAD
 #include "DetectorRetinanet.hpp"
-=======
->>>>>>> b5eafd9d05aadaba42e84010fd92516eca896656
+#include "DetectorFasterRcnn.hpp"
 
 std::unique_ptr<DetectorImpl> DetectorCreator::create_detector(DetetorType detector_type) {
     switch(detector_type) {
         case DetetorType ::SSD:
             std::cout << " successfully create ssd detector" << std::endl;
             return std::unique_ptr<DetectorImpl>(new DetectorSSD());
-<<<<<<< HEAD
     case DetetorType ::Retinanet:
         std::cout << " successfully create retinanet detector" << std::endl;
         return std::unique_ptr<DetectorImpl>(new DetectorRetinanet());
+    case DetetorType::FasterRcnn:
+        std::cout << " successfully create fasterrcnn detector" << std::endl;
+        return std::unique_ptr<DetectorImpl>(new DetectorFasterRcnn());
     default:
-            std::cout << "only support ssd, retinanet now" << std::endl;
+            std::cout << "only support ssd, retinanet, faster_rcnn now" << std::endl;
     }
     return nullptr;
 }
-=======
-        default:
-            std::cout << "only support ssd now" << std::endl;
-    }
-    return nullptr;
-}
->>>>>>> b5eafd9d05aadaba42e84010fd92516eca896656

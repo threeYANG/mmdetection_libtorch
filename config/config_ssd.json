@@ -1,28 +1,34 @@
 {
 "DetectorType" : "SSD",
-"modelPath": "/home/dl/Project/mmdetection/trace/ssd300_voc_trace.pt",
-"score_thr"  : 0.02,
-"nms_iou_thr"  : 0.45,
-"max_num"  : 100,
-"conf_thr" : 0.3,
-"nms_pre" : -1,
-"use_sigmoid" : 0,
-"anchor_strides"  : [8, 16, 32, 64, 100, 300],
-"target_means" : [0.0, 0.0, 0.0, 0.0],
-"target_stds" : [0.1, 0.1, 0.2, 0.2],
+"modelPath": "/home/dl/Project/mmdetection_libtorch/weights/ssd300_voc_trace.pt",
+"conf_thr" : 0.5,
 
-"Transform" : {
-      "mean" : [123.675, 116.28, 103.53],
-      "std" : [1, 1, 1],
-      "to_rgb" : 1,
-      "img_scale" : [300, 300],
-      "keep_ratio" : 0,
-      "pad" : 0
+"AnchorHead" : {
+    "use_sigmoid" : 0,
+    "nms_pre" : -1,
+    "nms_iou_thr"  : 0.45,
+
+    "score_thr"  : 0.02,
+    "max_per_img"  : 200,
+
+    "anchor_strides"  : [8, 16, 32, 64, 100, 300],
+    "target_means" : [0.0, 0.0, 0.0, 0.0],
+    "target_stds" : [0.1, 0.1, 0.2, 0.2]
 },
 
-"SSD": {
-  "anchor_ratios" : [[2], [2,3], [2,3], [2,3], [2], [2]],
-  "in_channels" : [512, 1024, 512, 256, 256, 256],
-  "basesize_ratio_range" : [0.15, 0.9]
+"SSDHead" : {
+    "input_size" : 300,
+    "anchor_ratios" : [[2], [2,3], [2,3], [2,3], [2], [2]],
+    "basesize_ratio_range" : [0.15, 0.9]
+},
+
+"Transforms" : {
+   "mean" : [123.675, 116.28, 103.53],
+   "std" : [1, 1, 1],
+   "to_rgb" : 1,
+   "img_scale" : [300, 300],
+   "keep_ratio" : 0,
+   "pad" : 0
 }
+
 }

@@ -20,5 +20,9 @@ torch::Tensor multiclass_nms(const torch::Tensor& multi_bboxes,
                              float score_thr, float iou_thr,
                              int max_num=-1);
 
+torch::Tensor singleclass_nms(const torch::Tensor& proposals,float iou_thr);
+
 void bbox2result(torch::Tensor& result, float thresh, cv::Size2f scale,
                  std::vector<DetectedBox>& detected_boxes);
+
+torch::Tensor bbox2roi(const torch::Tensor& proposals);

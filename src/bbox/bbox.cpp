@@ -95,6 +95,11 @@ torch::Tensor multiclass_nms(const torch::Tensor& multi_bboxes,
     return torch::cat({bboxes, labels}, 1);
 }
 
+torch::Tensor singleclass_nms(const torch::Tensor& proposals,float iou_thr) {
+
+    torch::Tensor inds = nms(proposals, iou_thr);
+    return inds;
+}
 
 void bbox2result(torch::Tensor& result, float thresh, cv::Size2f scale,
                  std::vector<DetectedBox>& detected_boxes) {
@@ -119,6 +124,14 @@ void bbox2result(torch::Tensor& result, float thresh, cv::Size2f scale,
             detected_boxes.emplace_back(detected_box);
         }
     }
+}
+
+
+//only one image
+torch::Tensor bbox2roi(const torch::Tensor& proposals) {
+    torch::Tensor img_inds = proposals.new_full({proposals.sizes()[0],1}, 0);
+    torch::Tensor rois = torch::cat({img_inds, proposals.slice(1, 0, 4)}, 1);
+    return rois;
 }
 
 

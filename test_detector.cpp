@@ -4,20 +4,14 @@
 
 int main() {
 
-<<<<<<< HEAD
     //std::string config_file = "/home/dl/Project/mmdetection_libtorch/config/config_ssd.json";
     std::string config_file = "/home/dl/Project/mmdetection_libtorch/config/config_re.json";
+    //std::string config_file = "/home/dl/Project/mmdetection_libtorch/config/config_faster_rcnn.json";
     Params params;
     long res = params.Read(config_file);
     if (res == -1) {
         return -1;
     }
-=======
-
-    std::string config_file = "/home/dl/Project/mmdetection_libtorch/config/config.json";
-    Params params;
-    params.Read(config_file);
->>>>>>> b5eafd9d05aadaba42e84010fd92516eca896656
 
 
     torch::DeviceType device_type;
@@ -29,7 +23,6 @@ int main() {
     }
 
     Detector detector;
-<<<<<<< HEAD
     res = detector.Create(params.detector_type_);
     if (res < 0) {
         return -1;
@@ -38,7 +31,7 @@ int main() {
     detector.LoadTracedModule();
 
 
-    cv::Mat image = cv::imread("/home/dl/Project/mmdetection_libtorch/image/000012.jpg");
+    cv::Mat image = cv::imread("/home/dl/Project/mmdetection_libtorch/image/000020.jpg");
     std::vector<DetectedBox> detected_boxes;
     res = detector.Detect(image, detected_boxes);
     std::cout << detected_boxes.size() << std::endl;
@@ -53,18 +46,6 @@ int main() {
         cv::imwrite("/home/dl/Project/mmdetection_libtorch/result.jpg", image);
     }
 
-=======
-    detector.Create(params.detector_type_);
-    detector.LoadParams( params, &device_type);
-    detector.LoadTracedModule();
-
-    cv::Mat image = cv::imread("/home/dl/Project/mmdetection_libtorch/image/000012.jpg");
-    std::vector<DetectedBox> detected_boxes;
-    int res = detector.Detect(image, detected_boxes);
-    if (res == 0) {
-        std::cout << detected_boxes.size() << std::endl;
-    }
->>>>>>> b5eafd9d05aadaba42e84010fd92516eca896656
     return 0;
 }
 

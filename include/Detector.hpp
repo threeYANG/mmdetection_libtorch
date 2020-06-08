@@ -17,11 +17,7 @@ public:
     Detector();
     ~Detector();
 
-<<<<<<< HEAD
     long Create(DetetorType detetorType);
-=======
-    void Create(DetetorType detetorType);
->>>>>>> b5eafd9d05aadaba42e84010fd92516eca896656
 
     void LoadParams(const Params& params, torch::DeviceType* device_type);
 

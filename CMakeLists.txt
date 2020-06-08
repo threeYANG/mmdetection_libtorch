@@ -43,7 +43,8 @@ set(DetectorSrc
         #detector
         src/detector/DetectorSSD.cpp
         src/detector/DetectorRetinanet.cpp
-        src/detector/SingleStage.cpp
+        src/detector/DetectorFasterRcnn.cpp
+        src/detector/DetectorCommon.cpp
 
 
         #utils

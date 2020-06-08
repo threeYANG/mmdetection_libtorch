@@ -15,10 +15,12 @@ public:
                     bool scale_major = true, const std::vector<float>& ctr = {});
     ~AnchorGenerator();
     void gen_base_anchors();
-    torch::Tensor grid_anchors(const std::vector<int>& featmap_size, int stride, torch::DeviceType device);
+    torch::Tensor grid_anchors(int stride, torch::DeviceType device);
 public:
     torch::Tensor base_anchors_;
     int anchor_nums_;
+
+    std::vector<int> feature_maps_sizes_;
 
 private:
     int base_size_;
@@ -26,6 +28,8 @@ private:
     torch::Tensor ratios_;
     bool scale_major_;
     std::vector<float> ctr_;
+
+
 };
 
 

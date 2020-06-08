@@ -3,11 +3,6 @@
 //
 #include <memory>
 #include "Detector.hpp"
-<<<<<<< HEAD
-=======
-
-#include <memory>
->>>>>>> b5eafd9d05aadaba42e84010fd92516eca896656
 #include "DetectorImpl.hpp"
 
 
@@ -15,7 +10,6 @@
 
 Detector::Detector() {
    impl_ = nullptr;
-<<<<<<< HEAD
 }
 
 Detector::~Detector() {
@@ -31,16 +25,6 @@ long Detector::Create(DetetorType detetorType){
     }
     return 0;
 }
-=======
-};
-Detector::~Detector() = default;
-
-void Detector::Create(DetetorType detetorType){
-    std::unique_ptr<DetectorImpl> imp_temp = DetectorImpl::Create(detetorType);
-    impl_ = std::move(imp_temp);
-
-};
->>>>>>> b5eafd9d05aadaba42e84010fd92516eca896656
 
 void Detector::LoadParams(const Params& params, torch::DeviceType* device_type) {
     impl_->LoadParams(params, device_type);
@@ -53,11 +37,7 @@ void Detector::LoadTracedModule() {
     } else {
         std::cout << "impl is nullptr, LoadTracedModule failed" << std::endl;
     }
-<<<<<<< HEAD
 }
-=======
-};
->>>>>>> b5eafd9d05aadaba42e84010fd92516eca896656
 
 
 long Detector::Detect(const cv::Mat& image, std::vector<DetectedBox>& detected_boxes){
@@ -68,8 +48,4 @@ long Detector::Detect(const cv::Mat& image, std::vector<DetectedBox>& detected_b
         std::cout << "impl is nullptr, Detect failed" << std::endl;
     }
     return -1;
-<<<<<<< HEAD
 }
-=======
-};
->>>>>>> b5eafd9d05aadaba42e84010fd92516eca896656

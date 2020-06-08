@@ -1,11 +1,10 @@
 #ifndef DETECTORRETINANET_HPP
 #define DETECTORRETINANET_HPP
 
-#include "SingleStage.hpp"
+#include "DetectorCommon.hpp"
 #include "DetectorImpl.hpp"
-#include "AnchorGenerator.hpp"
 
-class DetectorRetinanet: public SingleStage , public DetectorImpl {
+class DetectorRetinanet: public DetectorCommon , public DetectorImpl {
 
 public:
     DetectorRetinanet();
@@ -16,13 +15,8 @@ public:
     void Detect(const cv::Mat& image, std::vector<DetectedBox>& detected_boxes) override ;
 
 private:
-    int in_channels_;
-    int stacked_convs_;
-    int feat_channels_;
-    int octave_base_scale_;
-    int scales_per_octave_;
-    std::vector<float> anchor_ratios_;
 
+    RetinaHeadParams retina_head_params_;
 
 };
 
