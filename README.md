@@ -26,10 +26,10 @@
 3、使用get_trace.py进行trace，将pytorch生成的weights转换为libtorch可以载入的权重格式;
 4、mmdetection_libtorch工程中，修改configs中的配置参数。
  
+  ## Traced  weights
+ [ssd300_voc_traced](https://pan.baidu.com/s/1oE8HuiZv-s7U3SOM-Ede-Q)  4tbe
+ 这个是我用ssd300, voc数据训练的，可以直接在mmdetection_libtorch工程中使用。
  ## 说明
  1、ssd、retinanet、faster_rcnn三个网络的libtorch的部署中，其数据流和python接口的数据流保持一致，因此c++代码逻辑没有大的问题。
  2、mmdetection_libtorch工程中的各种功能c++代码都是从mmdetection中的python代码中移植过来的，其思路和表达方式都一致。
  3、mmdetection_libtorch工程中的c++代码，由于本人能力的问题，在实际使用的过程中，还可以进行各方面的优化。
- 
-
-
