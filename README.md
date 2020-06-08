@@ -1,6 +1,8 @@
 # mmdetection_libtorch
 &#8195; &#8195;本来打算英文写Readme的，奈何菜鸟一枚，英文表达能力太差，自己写完自己都有点看不懂，呵呵，于是乎，写个中文版的，再写个英文版的，中文版是呼之欲出，英文版是一改再该，半天拿不出手，等改好再发吧。（by the way，好像中文版Readme是很掉档啊，哈哈哈）
+
 &#8195; &#8195;发现mmdetection在工作中，用来尝试各种网络框架还是挺方便的，也便于在细节中动手脚，但是实际部署的时候用的是libtorch，于是乎，找了几个具有代表性的检测框架，将其的libtorch版本给写出来了（其实根本原因是闲的慌，哈哈哈）。
+
 &#8195; &#8195;mmdetection种涉及很多中检测框架，这里进行部署的，只有SSD、Retinanet、FasterRcnn(完成了一半，下面的工作是roi_align，mmdetection使用的是移植到cuda版本的，我一直没有移植成功，就卡到这里了)。后续如果有时候的话，有可能会把FCOS加进去。
 
 ## Requirements（这里是我使用的）
@@ -31,5 +33,7 @@
  这个是我用ssd300, voc数据训练的，可以直接在mmdetection_libtorch工程中使用。
  ## 说明
  1、ssd、retinanet、faster_rcnn三个网络的libtorch的部署中，其数据流和python接口的数据流保持一致，因此c++代码逻辑没有大的问题。
+
  2、mmdetection_libtorch工程中的各种功能c++代码都是从mmdetection中的python代码中移植过来的，其思路和表达方式都一致。
+
  3、mmdetection_libtorch工程中的c++代码，由于本人能力的问题，在实际使用的过程中，还可以进行各方面的优化。
