@@ -19,8 +19,11 @@
 ## how to trace a trained detector
 
  1、 使用mmdetection中的某个网络（ssd、retinanet，fasterrcnn)等进行训练。（这里需要注意的是，因为trace的时候，无法识别mmdet/opt/conv_module.py中的norm方法，因此这里我注释掉了，但是埋下了一个隐患，用到这个方法的其他网络框架会出现bug）;
+ 
  2、 single_stage.py 和 two_stage.py都加入了forward_trace函数，需要重写forward函数;
+ 
  3、 使用get_trace.py进行trace，将pytorch生成的weights转换为libtorch可以载入的权重格式;
+ 
  4.、mmdetection_libtorch工程中，修改configs中的配置参数。
  
   ## Traced  weights
@@ -29,5 +32,7 @@
  ## 说明
  
  1、ssd、retinanet、faster_rcnn三个网络的libtorch的部署中，其数据流和python接口的数据流保持一致，因此c++代码逻辑没有大的问题。
+ 
  2、mmdetection_libtorch工程中的各种功能c++代码都是从mmdetection中的python代码中移植过来的，其思路和表达方式都一致。
+ 
  3、mmdetection_libtorch工程中的c++代码，由于本人能力的问题，在实际使用的过程中，还可以进行各方面的优化。
