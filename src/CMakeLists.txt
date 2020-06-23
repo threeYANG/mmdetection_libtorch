@@ -61,7 +61,7 @@ set(SRC
 
 set(DEP_LIBS  ${TORCH_LIBRARIES} ${CUDA_LIBRARIES} ${OpenCV_LIBS})
 
-# 编译 "tuniinfe" 库, 输出到 ${CMAKE_BINARY_DIR}/lib
+# 编译库, 输出到 ${CMAKE_BINARY_DIR}/lib
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 add_library(DetectorModule SHARED ${SRC})
 target_link_libraries(DetectorModule ${DEP_LIBS})
