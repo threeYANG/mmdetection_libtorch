@@ -1,6 +1,6 @@
 {
 "DetectorType" : "FasterRCNN",
-"modelPath": "/home/dl/Project/mmdetection-master/trace/faster_rcnn_voc_trace.pt",
+"modelPath": "/home/dl/Project/mmdetection-master/trace/fasterrcnn_bone.pt,/home/dl/Project/mmdetection-master/trace/fasterrcnn_bbox.pt",
 "conf_thr" : 0.5,
 
 
