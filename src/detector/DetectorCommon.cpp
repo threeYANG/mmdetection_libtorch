@@ -91,6 +91,7 @@ void DetectorCommon::get_proposals(torch::Tensor& output, const std::vector<int>
 
         torch::Tensor score_layer = output_layer.slice(1, 4, digit_nums);
         torch::Tensor loc = output_layer.slice(1, 0, 4);
+
         if (anchor_head_params_.nms_pre_ > 0 && anchor_num > anchor_head_params_.nms_pre_){
             if (anchor_head_params_.use_sigmoid_ == 0){
                 score_layer = score_layer.slice(1, 1, digit_nums);
@@ -108,6 +109,7 @@ void DetectorCommon::get_proposals(torch::Tensor& output, const std::vector<int>
         torch::Tensor proposals_bboxes_layer= delta2bbox(anchors_layer, loc, img_shape, anchor_head_params_.target_means_, anchor_head_params_.target_stds_);
         if (rpn) {
             torch::Tensor inds = singleclass_nms(torch::cat({proposals_bboxes_layer, score_layer}, 1), anchor_head_params_.nms_thresh_);
+            //std::cout <<"inds:" <<inds.sizes()<<std::endl;
             int num = cv::min(int(inds.sizes()[0]) , rpn_head_params_.nms_post_);
             inds = inds.slice(0, 0, num);
             proposals_bboxes_layer = proposals_bboxes_layer.index_select(0, inds);
@@ -117,6 +119,7 @@ void DetectorCommon::get_proposals(torch::Tensor& output, const std::vector<int>
         if( k == 0) {
             proposals_bboxes = proposals_bboxes_layer;
             proposals_scores = score_layer;
+
         } else {
             proposals_bboxes = torch::cat({proposals_bboxes, proposals_bboxes_layer}, 0);
             proposals_scores = torch::cat({proposals_scores, score_layer}, 0);
@@ -157,84 +160,8 @@ void DetectorCommon::DetectOneStage(const cv::Mat& image, std::vector<DetectedBo
     bbox2result(nms_results, conf_thresh_, scale, detected_boxes);
 }
 
-void DetectorCommon::get_rpn_fpn_data(const torch::Tensor& output, torch::Tensor& rpn_data, std::vector<torch::Tensor>& fpn_datas) {
-    int rpn_num = 0;
-    int fpn_num = 0;
-    int rpn_channels = 4 + rpn_head_params_.class_num_ -1;
-    int fpn_channels = fpn_params_.out_channels_;
-    for(int k = 0; k < int(anchor_generators_.size()); k++) {
-        rpn_num += anchor_generators_[k].anchor_nums_ * rpn_channels;
-        assert (anchor_generators_[k].feature_maps_sizes_.size() == 2);
-        fpn_num += anchor_generators_[k].feature_maps_sizes_[0] * anchor_generators_[k].feature_maps_sizes_[1] * fpn_channels;
-    }
-    rpn_data = output.slice(0, 0, rpn_num).view({-1, rpn_channels});
-    std::cout << rpn_data.sizes() << std::endl;
-    std::cout << rpn_data[100] <<  std::endl;
-    torch::Tensor fpn_data = output.slice(0, rpn_num, output.sizes()[0]);
-    int start = 0;
-    int end = 0;
-    for(int k = 0; k < int(anchor_generators_.size()); k++) {
-      int feature_height = anchor_generators_[k].feature_maps_sizes_[0];
-      int feature_width = anchor_generators_[k].feature_maps_sizes_[1];
-      start = end;
-      int fpn_num_layer = feature_height * feature_width * fpn_channels;
-      end = end + fpn_num_layer;
-      torch::Tensor fpn_data_layer = fpn_data.slice(0, start, end).view({fpn_channels, feature_height, feature_width});
-      std::cout << fpn_data_layer.sizes() << std::endl;
-      std::cout << fpn_data_layer[100][10][10]<<std::endl;
-      fpn_datas.push_back(fpn_data_layer);
-    }
-}
-
-
 void DetectorCommon::DetectTwoStage(const cv::Mat& image, std::vector<DetectedBox>& detected_boxes) {
-        torch::Tensor tensor_image;
-        transform(image, tensor_image, transform_params_, net_width_, net_height_, device_);
 
-        std::cout << "tensor_image.sizes(): "<<std::endl;
-        auto start = std::chrono::high_resolution_clock::now();
-        torch::Tensor output = module_->forward({tensor_image}).toTensor().squeeze(0);
-        auto end = std::chrono::high_resolution_clock::now();
-        auto duration = duration_cast<milliseconds>(end - start);
-        std::cout << "forward taken : " << duration.count() << " ms" << std::endl;
-        std::cout << output.sizes() << std::endl;
-
-
-        get_anchor_boxes();
-
-        torch::Tensor rpn_data;
-        std::vector<torch::Tensor> fpn_datas;
-        get_rpn_fpn_data(output, rpn_data, fpn_datas);
-
-
-        torch::Tensor  proposals_scores;
-        torch::Tensor  proposals_bboxes;
-        bool rpn = true;
-        get_proposals(rpn_data, transform_params_.img_shape_, proposals_bboxes, proposals_scores,  rpn);
-
-        torch::Tensor proposals = torch::cat({proposals_bboxes, proposals_scores}, 1);
-        if (rpn_head_params_.nms_across_levels_ == 1) {
-
-            torch::Tensor inds = singleclass_nms(proposals, anchor_head_params_.nms_thresh_);
-            int num = cv::min(int(inds.sizes()[0]), rpn_head_params_.max_num_);
-            proposals = proposals.slice(0, 0, num);
-        } else {
-            int num = cv::min(rpn_head_params_.max_num_, int(proposals_scores.sizes()[0]));
-            std::tuple<torch::Tensor, torch::Tensor> topk = torch::topk(proposals_scores.squeeze(), num);
-            torch::Tensor topk_inds = std::get<1>(topk);
-            proposals = proposals.index_select(0, topk_inds);
-        }
-
-        std::cout << proposals.sizes() << std::endl;
-        std::cout << proposals[0] << std::endl;
-        std::cout << proposals[1] << std::endl;
-        std::cout << proposals[2] << std::endl;
-        std::cout << proposals[3] << std::endl;
-        std::cout << proposals[4] << std::endl;
-
-        torch::Tensor rois = bbox2roi(proposals);
-
-        std::cout << rois[0]  << std::endl;
 }
 
 

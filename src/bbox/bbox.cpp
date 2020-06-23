@@ -3,7 +3,6 @@
 //
 
 #include "bbox.hpp"
-#include "nms_kernel.h"
 #define CHECK_CUDA(x) AT_CHECK(x.type().is_cuda(), #x, " must be a CUDAtensor ")
 
 
@@ -18,10 +17,6 @@ torch::Tensor delta2bbox(const torch::Tensor& rois, const torch::Tensor& deltas,
                          const std::vector<int>& max_shape,
                          const std::vector<float>& means, const std::vector<float>& stds,
                          float wh_ratio_clip) {
-
-    assert (rois.sizes() == deltas.sizes());
-    assert (rois.device() == deltas.device());
-
     torch::Tensor Tmeans = torch::tensor(means).to(deltas.device()).type_as(deltas);
     Tmeans = Tmeans.repeat({1, deltas.sizes()[1] / 4});
     torch::Tensor Tstds = torch::tensor(stds).to(deltas.device()).type_as(deltas);

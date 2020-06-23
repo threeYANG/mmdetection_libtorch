@@ -7,6 +7,10 @@
 #include "torch/script.h"
 
 
+extern "C" {
+at::Tensor nms_cuda(const at::Tensor boxes, float nms_overlap_thresh);
+}
+
 torch::Tensor delta2bbox(const torch::Tensor& anchors, const torch::Tensor& deltas,
                          const std::vector<int>& max_shape,
                          const std::vector<float>& means = {0.0, 0.0, 0.0, 0.0},

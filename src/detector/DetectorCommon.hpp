@@ -18,8 +18,8 @@ public:
 
     void LoadParams(const Params& params, torch::DeviceType* device_type);
     void LoadTracedModule();
-    void DetectOneStage(const cv::Mat& image, std::vector<DetectedBox>& detected_boxes);
-    void DetectTwoStage(const cv::Mat& image, std::vector<DetectedBox>& detected_boxes);
+    virtual void DetectOneStage(const cv::Mat& image, std::vector<DetectedBox>& detected_boxes);
+    virtual void DetectTwoStage(const cv::Mat& image, std::vector<DetectedBox>& detected_boxes);
 
     virtual void get_anchor_generators(const std::vector<int>& anchor_base_sizes,
                                 const std::vector<float>& anchor_scales,
@@ -27,12 +27,13 @@ public:
     //must know the net size
     virtual void get_anchor_boxes();
 
-private:
-    void init_params();
-    void get_rpn_fpn_data(const torch::Tensor& output, torch::Tensor& rpn_data, std::vector<torch::Tensor>& fpn_datas);
+protected:
     void get_proposals(torch::Tensor& output, const std::vector<int>& img_shape,
                        torch::Tensor& proposals_bboxes, torch::Tensor&  proposals_scores,
                        bool rpn);
+private:
+    void init_params();
+
 
 
 protected:
