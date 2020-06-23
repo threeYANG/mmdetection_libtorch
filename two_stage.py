@@ -323,31 +323,7 @@ class TwoStageDetector(BaseDetector, RPNTestMixin, BBoxTestMixin,
         """Test without augmentation."""
         assert self.with_bbox, 'Bbox head must be implemented.'
 
-        print (img.squeeze()[0,100,100])
         x = self.extract_feat(img)
-
-        rpn_outs = self.rpn_head(x)
-
-        cls_all = list()
-        bbox_all = list()
-        # 这里必须做维度的交换
-        for (cls, bbox) in zip(rpn_outs[0], rpn_outs[1]):
-            cls_all.append(cls.permute(0, 2, 3, 1).contiguous())
-            bbox_all.append(bbox.permute(0, 2, 3, 1).contiguous())
-
-        loc = torch.cat([o.view(o.size(0), -1) for o in cls_all], 1)
-        conf = torch.cat([o.view(o.size(0), -1) for o in bbox_all], 1)
-
-        output = torch.cat((conf.view(conf.size(0), -1, 4), loc.view(loc.size(0), -1, self.rpn_head.cls_out_channels)),
-                           2)
-        print ("output")
-        print (output[0, 100])
-        output = output.view(-1, 1)
-        data = torch.cat([xx.view(-1, 1) for xx in x], 0)
-        output = torch.cat([output, data], 0)
-
-        for xx in x:
-            print (xx[0, 100, 10, 10])
 
         if proposals is None:
             proposal_list = self.simple_test_rpn(x, img_metas,
@@ -355,11 +331,6 @@ class TwoStageDetector(BaseDetector, RPNTestMixin, BBoxTestMixin,
         else:
             proposal_list = proposals
 
-        print (proposal_list[0][0])
-        print(proposal_list[0][1])
-        print(proposal_list[0][2])
-        print(proposal_list[0][3])
-        print(proposal_list[0][4])
         det_bboxes, det_labels = self.simple_test_bboxes(
             x, img_metas, proposal_list, self.test_cfg.rcnn, rescale=rescale)
         bbox_results = bbox2result(det_bboxes, det_labels,
