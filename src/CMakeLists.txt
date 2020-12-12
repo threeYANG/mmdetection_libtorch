@@ -5,9 +5,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g3  -Wno-deprecated-declarations")
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D__CUDA_NO_HALF_OPERATORS__")
 
 # CUDA
+set(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda")
 find_package(CUDA REQUIRED)
 include_directories(${CUDA_INCLUDE_DIRS})
-#message("CUDA_INCLUDE_DIRS" ${CUDA_INCLUDE_DIRS})
+message("CUDA_INCLUDE_DIRS" ${CUDA_INCLUDE_DIRS})
 
 
 #opencv
@@ -19,13 +20,15 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 set(PROJECT_INCLUDES
     ./
     ../include/
-    anchor/
+    anchor_point/
     bbox/
+    nms/
     detector/
     transform/
     utils/
     single_roi_extractor/
     roi_align/
+    cuda_helper/
 )
 
 foreach(PROJECT_INCLUDE ${PROJECT_INCLUDES})
@@ -37,18 +40,20 @@ set(SRC
     ./DetectorImpl.cpp
     ./types.cpp
     ./DetectorCreator.cpp
-    ./anchor/AnchorGenerator.cpp
+    ./anchor_point/AnchorPointGenerator.cpp
     ./bbox/bbox.cpp
-    ./bbox/nms_kernel.cu
+    ./nms/nms_cuda.cu
+    ./nms/nms.cpp
     ./single_roi_extractor/SingleRoIExtractor.cpp
     ./roi_align/RoIAlign.cpp
-    ./roi_align/roi_align_kernel.cu
+    ./roi_align/roi_align_cuda.cu
 
     #transforms
     ./transform/transforms.cpp
 
     #detector
     ./detector/DetectorSSD.cpp
+    ./detector/DetectorFCOS.cpp
     ./detector/DetectorRetinanet.cpp
     ./detector/DetectorFasterRcnn.cpp
     ./detector/DetectorCommon.cpp

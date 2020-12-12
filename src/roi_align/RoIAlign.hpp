@@ -8,44 +8,36 @@
 #include "torch/torch.h"
 #include "torch/script.h"
 
-
-extern "C" {
-int ROIAlignForwardLaucher(const at::Tensor features, const at::Tensor rois,
-                           const float spatial_scale, const int sample_num,
-                           const int channels, const int height,
-                           const int width, const int num_rois,
-                           const int pooled_height, const int pooled_width,
-                           at::Tensor output);
-}
+#include "pytorch_cpp_helper.hpp"
 
 
-extern "C" {
-at::Tensor ROIAlignForwardV2Laucher(const at::Tensor& input,
-                                    const at::Tensor& rois,
-                                    const float spatial_scale,
-                                    const int pooled_height,
-                                    const int pooled_width,
-                                    const int sampling_ratio, bool aligned);
+void ROIAlignForwardCUDAKernelLauncher(Tensor input, Tensor rois, Tensor output,
+                                       Tensor argmax_y, Tensor argmax_x,
+                                       int aligned_height, int aligned_width,
+                                       float spatial_scale, int sampling_ratio,
+                                       int pool_mode, bool aligned);
 
-}
+
+
 
 class RoIAlign
 {
 public:
-    RoIAlign(int out_size, float spatial_scale, int sample_num,
-             bool use_torchvision = false, bool aligned = false);
+    RoIAlign(int out_size, float spatial_scale, int sampling_ratio,
+             std::string pool_mode = "avg",
+             bool use_torchvision = false, bool aligned = true);
     ~RoIAlign();
 
-    int roi_align_forward_cuda(at::Tensor features, at::Tensor rois,
-                               at::Tensor output);
+    torch::Tensor roi_align_forward_cuda(const Tensor& input, const Tensor& rois);
 
 private:
-    int pooled_height_;
-    int pooled_width_;
+    int aligned_height_;
+    int aligned_width_;
     float spatial_scale_;
-    bool aligned_;
-    int sample_num_;
+    int sampling_ratio_;
+    int pool_mode_;
     bool use_torchvision_;
+    bool aligned_;
 };
 
 #endif // ROIALIGN_HPP

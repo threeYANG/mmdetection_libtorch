@@ -1,12 +1,12 @@
-import torch.nn as nn
 import torch
+import torch.nn as nn
+
 from mmdet.core import bbox2result
-from .. import builder
-from ..registry import DETECTORS
+from ..builder import DETECTORS, build_backbone, build_head, build_neck
 from .base import BaseDetector
 
 
-@DETECTORS.register_module
+@DETECTORS.register_module()
 class SingleStageDetector(BaseDetector):
     """Base class for single-stage detectors.
 
@@ -22,15 +22,23 @@ class SingleStageDetector(BaseDetector):
                  test_cfg=None,
                  pretrained=None):
         super(SingleStageDetector, self).__init__()
-        self.backbone = builder.build_backbone(backbone)
+        self.backbone = build_backbone(backbone)
         if neck is not None:
-            self.neck = builder.build_neck(neck)
-        self.bbox_head = builder.build_head(bbox_head)
+            self.neck = build_neck(neck)
+        bbox_head.update(train_cfg=train_cfg)
+        bbox_head.update(test_cfg=test_cfg)
+        self.bbox_head = build_head(bbox_head)
         self.train_cfg = train_cfg
         self.test_cfg = test_cfg
         self.init_weights(pretrained=pretrained)
 
     def init_weights(self, pretrained=None):
+        """Initialize the weights in detector.
+
+        Args:
+            pretrained (str, optional): Path to pre-trained weights.
+                Defaults to None.
+        """
         super(SingleStageDetector, self).init_weights(pretrained)
         self.backbone.init_weights(pretrained=pretrained)
         if self.with_neck:
@@ -42,8 +50,7 @@ class SingleStageDetector(BaseDetector):
         self.bbox_head.init_weights()
 
     def extract_feat(self, img):
-        """Directly extract features from the backbone+neck
-        """
+        """Directly extract features from the backbone+neck."""
         x = self.backbone(img)
         if self.with_neck:
             x = self.neck(x)
@@ -52,35 +59,11 @@ class SingleStageDetector(BaseDetector):
     def forward_dummy(self, img):
         """Used for computing network flops.
 
-        See `mmedetection/tools/get_flops.py`
+        See `mmdetection/tools/get_flops.py`
         """
         x = self.extract_feat(img)
         outs = self.bbox_head(x)
         return outs
-
-    def forward_trace(self, img):
-        """trace network.
-
-        See `mmedetection/tools/get_trace.py`
-        """
-        x = self.extract_feat(img)
-        outs = self.bbox_head(x)
-
-        cls_all = list()
-        bbox_all = list()
-        # 这里必须做维度的交换
-        for (cls, bbox) in zip(outs[0], outs[1]):
-            cls_all.append(cls.permute(0, 2, 3, 1).contiguous())
-            bbox_all.append(bbox.permute(0, 2, 3, 1).contiguous())
-
-        loc = torch.cat([o.view(o.size(0), -1) for o in cls_all], 1)
-        conf = torch.cat([o.view(o.size(0), -1) for o in bbox_all], 1)
-
-        output = torch.cat((conf.view(conf.size(0), -1, 4), loc.view(loc.size(0), -1, self.bbox_head.cls_out_channels)), 2)
-
-        print (output.shape)
-
-        return output
 
     def forward_train(self,
                       img,
@@ -88,24 +71,131 @@ class SingleStageDetector(BaseDetector):
                       gt_bboxes,
                       gt_labels,
                       gt_bboxes_ignore=None):
+        """
+        Args:
+            img (Tensor): Input images of shape (N, C, H, W).
+                Typically these should be mean centered and std scaled.
+            img_metas (list[dict]): A List of image info dict where each dict
+                has: 'img_shape', 'scale_factor', 'flip', and may also contain
+                'filename', 'ori_shape', 'pad_shape', and 'img_norm_cfg'.
+                For details on the values of these keys see
+                :class:`mmdet.datasets.pipelines.Collect`.
+            gt_bboxes (list[Tensor]): Each item are the truth boxes for each
+                image in [tl_x, tl_y, br_x, br_y] format.
+            gt_labels (list[Tensor]): Class indices corresponding to each box
+            gt_bboxes_ignore (None | list[Tensor]): Specify which bounding
+                boxes can be ignored when computing the loss.
+
+        Returns:
+            dict[str, Tensor]: A dictionary of loss components.
+        """
         x = self.extract_feat(img)
-        outs = self.bbox_head(x)
-        loss_inputs = outs + (gt_bboxes, gt_labels, img_metas, self.train_cfg)
-        losses = self.bbox_head.loss(
-            *loss_inputs, gt_bboxes_ignore=gt_bboxes_ignore)
+        losses = self.bbox_head.forward_train(x, img_metas, gt_bboxes,
+                                              gt_labels, gt_bboxes_ignore)
         return losses
 
-    def simple_test(self, img, img_meta, rescale=False):
+    def forward_trace_fcos(self, img):
         x = self.extract_feat(img)
         outs = self.bbox_head(x)
 
-        bbox_inputs = outs + (img_meta, self.test_cfg, rescale)
-        bbox_list = self.bbox_head.get_bboxes(*bbox_inputs)
+        cls_score_all = list()
+        bbox_pred_all = list()
+        centerness_all = list()
+
+        # 这里必须做维度的交换
+        for (cls_score, bbox_pred, centerness) in zip(outs[0], outs[1], outs[2]):
+            cls_score_all.append(cls_score.permute(0, 2, 3, 1).contiguous())
+            bbox_pred_all.append(bbox_pred.permute(0, 2, 3, 1).contiguous())
+            centerness_all.append(centerness.permute(0, 2, 3, 1).contiguous())
+
+        cls_score = torch.cat([o.view(o.size(0), -1) for o in cls_score_all], 1)
+        bbox_pred = torch.cat([o.view(o.size(0), -1) for o in bbox_pred_all], 1)
+        centerness = torch.cat([o.view(o.size(0), -1) for o in centerness_all], 1)
+
+        bbox_pred = bbox_pred.view(-1, 4)
+        cls_score = cls_score.view(-1, self.bbox_head.cls_out_channels)
+        centerness = centerness.view(-1, 1)
+
+        return cls_score, bbox_pred, centerness
+
+
+    def forward_trace_ssd_retinanet(self, img):
+        x = self.extract_feat(img)
+        outs = self.bbox_head(x)
+
+        cls_score_all = list()
+        bbox_pred_all = list()
+        # 这里必须做维度的交换
+        for (cls_score, bbox_pred) in zip(outs[0], outs[1]):
+            cls_score_all.append(cls_score.permute(0, 2, 3, 1).contiguous())
+            bbox_pred_all.append(bbox_pred.permute(0, 2, 3, 1).contiguous())
+
+        cls_score = torch.cat([o.view(o.size(0), -1) for o in cls_score_all], 1)
+        bbox_pred = torch.cat([o.view(o.size(0), -1) for o in bbox_pred_all], 1)
+
+        bbox_pred = bbox_pred.view(-1, 4)
+        cls_score = cls_score.view(-1, self.bbox_head.cls_out_channels)
+
+        return cls_score, bbox_pred
+
+
+    def simple_test(self, img, img_metas, rescale=False):
+        """Test function without test time augmentation.
+
+        Args:
+            imgs (list[torch.Tensor]): List of multiple images
+            img_metas (list[dict]): List of image information.
+            rescale (bool, optional): Whether to rescale the results.
+                Defaults to False.
+
+        Returns:
+            list[list[np.ndarray]]: BBox results of each image and classes.
+                The outer list corresponds to each image. The inner list
+                corresponds to each class.
+        """
+#        print(img.shape)
+#        print (img[0][0][100][100])
+#        print(img[0][0][200][200])
+#        print(img[0][0][300][300])
+        x = self.extract_feat(img)
+        outs = self.bbox_head(x)
+
+
+
+        bbox_list = self.bbox_head.get_bboxes(
+            *outs, img_metas, rescale=rescale)
+        # skip post-processing when exporting to ONNX
+        if torch.onnx.is_in_onnx_export():
+            return bbox_list
+
         bbox_results = [
             bbox2result(det_bboxes, det_labels, self.bbox_head.num_classes)
             for det_bboxes, det_labels in bbox_list
         ]
-        return bbox_results[0]
+
+        return bbox_results
 
     def aug_test(self, imgs, img_metas, rescale=False):
-        raise NotImplementedError
+        """Test function with test time augmentation.
+
+        Args:
+            imgs (list[Tensor]): the outer list indicates test-time
+                augmentations and inner Tensor should have a shape NxCxHxW,
+                which contains all images in the batch.
+            img_metas (list[list[dict]]): the outer list indicates test-time
+                augs (multiscale, flip, etc.) and the inner list indicates
+                images in a batch. each dict has image information.
+            rescale (bool, optional): Whether to rescale the results.
+                Defaults to False.
+
+        Returns:
+            list[list[np.ndarray]]: BBox results of each image and classes.
+                The outer list corresponds to each image. The inner list
+                corresponds to each class.
+        """
+        assert hasattr(self.bbox_head, 'aug_test'), \
+            f'{self.bbox_head.__class__.__name__}' \
+            ' does not support test-time augmentation'
+
+        feats = self.extract_feats(imgs)
+        return [self.bbox_head.aug_test(feats, img_metas, rescale=rescale)]

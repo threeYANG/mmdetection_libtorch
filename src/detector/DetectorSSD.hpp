@@ -1,6 +1,6 @@
 #include "DetectorCommon.hpp"
 #include "DetectorImpl.hpp"
-#include "AnchorGenerator.hpp"
+#include "AnchorPointGenerator.hpp"
 
 #define EPSILON 1e-6
 
@@ -20,7 +20,8 @@ private:
                                const std::vector<float>& anchor_scales,
                                const std::vector<float>& anchor_ratios);
     //must know the net size
-    void get_anchor_boxes();
+    void get_anchors();
+
     void get_min_max_size();
 
 private:

@@ -28,16 +28,11 @@ enum class DetetorType : int
     SSD = 0,
     Retinanet = 1,
     FasterRcnn = 2,
+    FCOS = 3,
 };
 
 
 struct AnchorHeadParams {
-    int nms_pre_;
-    int use_sigmoid_;
-    float nms_thresh_;
-    float score_thresh_;
-    int max_per_img_;
-    std::vector<int> anchor_strides_;
     std::vector<float> target_means_;
     std::vector<float> target_stds_;
 };
@@ -60,7 +55,7 @@ struct RPNHeadParams {
     int nms_across_levels_;
     int nms_post_;
     int max_num_;
-    int min_bbox_size_;
+    int min_bbox_size_;  //only support min_bbox_size = 0
     std::vector<float> anchor_scales_;
     std::vector<float> anchor_ratios_;
 };
@@ -78,10 +73,12 @@ struct TransformParams {
 
 struct RoiExtractorParams {
     std::string type_;
+    int sampling_ratio_;
     int out_size_;
-    int sample_num_;
     int out_channels_;
     std::vector<int> featmap_strides_;
+    std::vector<float> target_means_;
+    std::vector<float> target_stds_;
 };
 
 struct FPNParams {
@@ -95,13 +92,17 @@ public:
     ~Params() = default;
 
     DetetorType detector_type_;
-    std::string model_path_;
+    std::string module_path_;
     float conf_thresh_;
-
+    std::vector<int> strides_;
+    int nms_pre_;
+    int use_sigmoid_;  // only support use_sigmoid_ = 1
+    float nms_thresh_;
+    float score_thresh_;
+    int max_per_img_;
     TransformParams transform_params_;
+
     AnchorHeadParams anchor_head_params_;
-
-
     SSDHeadParams ssd_head_params_;
     RetinaHeadParams retina_head_params_;
     RPNHeadParams rpn_head_params_;

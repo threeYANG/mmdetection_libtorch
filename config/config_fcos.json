@@ -1,0 +1,21 @@
+{
+"DetectorType" : "FCOS",
+"modelPath": "/home/dl/Project/mmdetection_libtorch/weights/fcos_traced_epoch_6.pt",
+"conf_thr" : 0.3,
+"strides"  : [8, 16, 32, 64, 128],
+"use_sigmoid" : 1,
+"nms_pre" : 1000,
+"nms_iou_thr"  : 0.5,
+"score_thr"  : 0.05,
+"max_per_img"  : 100,
+
+"Transforms" : {
+      "mean" : [102.9801, 115.9465, 122.7717],
+      "std" : [1.0, 1.0, 1.0],
+      "to_rgb" : 0,
+      "img_scale" : [1333, 800],
+      "keep_ratio" : 1,
+      "pad" : 32
+}
+
+}

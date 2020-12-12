@@ -1,20 +1,17 @@
 {
 "DetectorType" : "FasterRCNN",
-"modelPath": "/home/dl/Project/mmdetection-master/trace/fasterrcnn_bone.pt,/home/dl/Project/mmdetection-master/trace/fasterrcnn_bbox.pt",
+"modelPath": "/home/dl/Project/mmdetection_libtorch/weights/fasterrcnn_tracedbone.pt,/home/dl/Project/mmdetection_libtorch/weights/fasterrcnn_tracedbbox.pt",
 "conf_thr" : 0.5,
-
+"strides"  : [4, 8, 16, 32, 64],
+"use_sigmoid" : 1,
+"nms_pre" : 1000,
+"nms_iou_thr"  : 0.7,
+"score_thr"  : 0.3,
+"max_per_img"  : -1,
 
 "AnchorHead" : {
-    "use_sigmoid" : 1,
-    "nms_pre" : 1000,
-    "nms_iou_thr"  : 0.7,
-
-    "score_thr"  : 0,
-    "max_per_img"  : -1,
-
-    "anchor_strides"  : [4, 8, 16, 32, 64],
     "target_means" : [0.0, 0.0, 0.0, 0.0],
-    "target_stds" : [1.0, 1.0, 1.0, 1.0]
+    "target_stds" : [1, 1, 1, 1]
 },
 
 "RPNHead" : {
@@ -36,16 +33,18 @@
 "RoiExtractor" : {
     "type": "RoIAlign",
     "out_size" : 7,
-    "sample_num" :2,
+    "sampling_ratio" :0,
     "out_channels" : 256,
-    "featmap_strides" : [4,8, 16, 32]
+    "featmap_strides" : [4, 8, 16, 32],
+    "target_means" : [0.0, 0.0, 0.0, 0.0],
+    "target_stds" : [0.1, 0.1, 0.2, 0.2]
 },
 
 "Transforms" : {
    "mean" : [123.675, 116.28, 103.53],
    "std" : [58.395, 57.12, 57.375],
    "to_rgb" : 1,
-   "img_scale" : [1333, 800],
+   "img_scale" : [1000, 600],
    "keep_ratio" : 1,
    "pad" : 32
 }

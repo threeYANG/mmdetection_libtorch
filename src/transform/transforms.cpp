@@ -1,6 +1,7 @@
 #include "transforms.hpp"
 
 
+
 float imrescale(const cv::Mat& image, cv::Mat& image_resize,
               const std::vector<int>& img_scale, int& net_width, int& net_height) {
     float h = image.rows;
@@ -51,21 +52,16 @@ void normalize(torch::Tensor& tensor_image,
 
 }
 
-void normalize(cv::Mat& resize_image,
+void normalize(cv::Mat& resize_image,int to_rgb,
                const std::vector<float>& mean,
                const std::vector<float>& std) {
-
-    //std::cout <<"a3: " <<resize_image.rows <<" " <<resize_image.cols << std::endl;
-    cv::Vec3b bgr = resize_image.at<cv::Vec3b>(100, 100);
-    //std::cout << int(bgr[0])<<" "<< int(bgr[1])<<" "<< int(bgr[2])<<std::endl;
-
+    //std::cout << "*********normalize***********"<<std::endl;
     resize_image.convertTo(resize_image, CV_32FC3, 1.0, 0);
-    //std::cout <<"a4: " <<resize_image.rows <<" " <<resize_image.cols << std::endl;
-    cv::Vec3f bgr_f = resize_image.at<cv::Vec3f>(100, 100);
-    //std::cout << bgr_f[0]<<" "<< bgr_f[1]<<" "<< bgr_f[2]<<std::endl;
 
-
-    cv::cvtColor(resize_image, resize_image, cv::COLOR_BGR2RGB);
+    if (to_rgb == 1)
+    {
+        cv::cvtColor(resize_image, resize_image, cv::COLOR_BGR2RGB);
+    }
 
     std::vector<cv::Mat> input_channels;
     cv::split(resize_image, input_channels);
@@ -79,9 +75,7 @@ void transform(const cv::Mat& image, torch::Tensor& tensor_image,
                int& net_width, int& net_height,
                torch::DeviceType* device)
 {
-    //std::cout << "a1: " <<image.rows<<" "<<image.cols<< std::endl;
-    cv::Vec3b bgr = image.at<cv::Vec3b>(100, 100);
-    //std::cout << int(bgr.val[0])<<" "<< int(bgr.val[1])<<" "<< int(bgr.val[2])<<std::endl;
+    //resize
     cv::Mat image_resize;
     if (transform_params.keep_ratio_ == 0) {
         net_width = transform_params.img_scale_[0];
@@ -91,26 +85,20 @@ void transform(const cv::Mat& image, torch::Tensor& tensor_image,
     else if (transform_params.keep_ratio_ == 1) {
         transform_params.scale_factor_ = imrescale(image, image_resize, transform_params.img_scale_, net_width, net_height);
     }
-    //std::cout << "a2: " <<image_resize.rows<<" "<<image_resize.cols<< std::endl;
-    bgr = image_resize.at<cv::Vec3b>(100, 100);
-    //std::cout << int(bgr[0])<<" "<< int(bgr[1])<<" "<< int(bgr[2])<<std::endl;
-    transform_params.img_shape_.push_back(image_resize.rows);
+
     transform_params.img_shape_.push_back(image_resize.cols);
+    transform_params.img_shape_.push_back(image_resize.rows);
     transform_params.img_shape_.push_back(image_resize.channels());
     assert (image_resize.empty() != 1);
 
-    normalize(image_resize, transform_params.mean_, transform_params.std_);
+    //normalize
+    normalize(image_resize, transform_params.to_rgb_, transform_params.mean_, transform_params.std_);
 
-   // std::cout <<"a5: " <<image_resize.rows <<" " << image_resize.cols << std::endl;
-    cv::Vec3f bgr_f = image_resize.at<cv::Vec3f>(100, 100);
-    //std::cout << bgr_f[0]<<" "<< bgr_f[1]<<" "<< bgr_f[2]<<std::endl;
+    //pad
     if (transform_params.pad_ > 0) {
        image_resize = impad_to_multiple(image_resize, transform_params.pad_);
        net_width = image_resize.cols;
        net_height = image_resize.rows;
-       //std::cout <<"a6: " <<image_resize.rows <<" " << image_resize.cols << std::endl;
-       bgr_f = image_resize.at<cv::Vec3f>(100, 100);
-       //std::cout << bgr_f[0]<<" "<< bgr_f[1]<<" "<< bgr_f[2]<<std::endl;
     }
 
 // 下方的代码即将图像转化为Tensor，随后导入模型进行预

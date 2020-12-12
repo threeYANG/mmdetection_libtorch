@@ -11,7 +11,7 @@ DetectorRetinanet::~DetectorRetinanet() {
 
 void DetectorRetinanet::LoadParams(const Params& params, torch::DeviceType* device_type) {
 
-    DetectorCommon::LoadParams(params, device_type);
+    LoadCommonParams(params, device_type);
 
     retina_head_params_ = params.retina_head_params_;
 
@@ -26,10 +26,12 @@ void DetectorRetinanet::LoadParams(const Params& params, torch::DeviceType* devi
 }
 
 void DetectorRetinanet::LoadTracedModule(){
-   DetectorCommon::LoadTracedModule();
+
+   LoadCommonTracedModule();
+
 }
 
 void DetectorRetinanet::Detect(const cv::Mat& image, std::vector<DetectedBox>& detected_boxes){
 
-  DetectorCommon::DetectOneStage(image, detected_boxes);
+    DetectOneStage(image, detected_boxes);
 }

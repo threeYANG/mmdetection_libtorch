@@ -10,16 +10,9 @@ import torch
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a detector')
     parser.add_argument('config', help='train config file path')
-    parser.add_argument(
-        '--checkpoint', help='the checkpoint file to trace')
-    parser.add_argument(
-        '--tracedpoint', help='the name of tracedpoint')
-    parser.add_argument(
-        '--shape',
-        type=int,
-        nargs='+',
-        default=[1280, 800],
-        help='input image size')
+    parser.add_argument('--checkpoint', help='the checkpoint file to trace')
+    parser.add_argument('--tracedpoint', help='the name of tracedpoint')
+    parser.add_argument('--shape',type=int,nargs='+',default=[1280, 800],help='input image size')
     args = parser.parse_args()
     return args
 
@@ -34,17 +27,21 @@ def main():
     else:
         raise ValueError('invalid input shape')
 
+
     cfg = Config.fromfile(args.config)
-    model = build_detector(
-        cfg.model, train_cfg=cfg.train_cfg, test_cfg=cfg.test_cfg).cuda()
+    model = build_detector(cfg.model, train_cfg=cfg.train_cfg, test_cfg=cfg.test_cfg).cuda()
+
+    network = model.__class__.__name__.lower()
+    print("this network is " + network)
 
 
-    if hasattr(model, 'forward_trace'):
-        model.forward = model.forward_trace
+    if network == "fcos":
+        model.forward = model.forward_trace_fcos
+    elif network == "ssd" or network == "retinanet":
+        model.forward = model.forward_trace_ssd_retinanet
     else:
-        raise NotImplementedError(
-            'FLOPs counter is currently not currently supported with {}'.
-            format(model.__class__.__name__))
+        print("one_stage trace only support fcos, ssd, retinanet")
+        return
 
 
     checkpoint = torch.load(args.checkpoint)

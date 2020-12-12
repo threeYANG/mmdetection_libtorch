@@ -15,8 +15,6 @@ def parse_args():
     parser.add_argument(
         '--tracedbone', help='the name of tracedpoint')
     parser.add_argument(
-        '--tracedshared', help='the name of tracedpoint')
-    parser.add_argument(
         '--tracedbbox', help='the name of tracedpoint')
     parser.add_argument(
         '--shape',
@@ -42,27 +40,23 @@ def main():
     model = build_detector(
         cfg.model, train_cfg=cfg.train_cfg, test_cfg=cfg.test_cfg).cuda()
 
-    if hasattr(model, 'forward_trace'):
-        model.forward = model.forward_trace
+    if model.__class__.__name__.lower() == "fasterrcnn":
+        model.forward = model.forward_trace_fasterrcnn
     else:
-        raise NotImplementedError(
-            'FLOPs counter is currently not currently supported with {}'.
-            format(model.__class__.__name__))
+        print ("two stage trace only support fasterrcnn")
+        return
 
     checkpoint = torch.load(args.checkpoint)
     model.load_state_dict(checkpoint['state_dict'])
     model.eval()
 
+    print (input_shape)
     img = torch.rand(input_shape).cuda()
     traced_bone = torch.jit.trace(model, img)
     traced_bone.save(args.tracedbone)
 
     bbox_feats = torch.rand(1000, 256, 7, 7).cuda()
-    if model.with_shared_head:
-        traced_shared = torch.jit.trace(model.shared_head, bbox_feats)
-        traced_shared.save(args.tracedshared)
-
-    traced_bbox = torch.jit.trace(model.bbox_head, bbox_feats)
+    traced_bbox = torch.jit.trace(model.roi_head.bbox_head, bbox_feats)
     traced_bbox.save(args.tracedbbox)
 
 

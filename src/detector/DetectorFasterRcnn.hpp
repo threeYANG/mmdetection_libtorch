@@ -17,19 +17,24 @@ public:
     void Detect(const cv::Mat& image, std::vector<DetectedBox>& detected_boxes) override ;
 
 private:
-    void get_rpn_fpn_data(const torch::Tensor& output, torch::Tensor& rpn_data, std::vector<torch::Tensor>& fpn_datas);
+    void second_stage(torch::Tensor& proposals,
+                      torch::Tensor& bboxes,
+                      torch::Tensor& scores);
+
+    void get_bboxes(const c10::IValue& output_data,
+                    torch::Tensor& proposals_bboxes,
+                    torch::Tensor& proposals_scores);
+
+    void split_rpn_fpn(const c10::IValue& output_data);
+
 
 
 private:
     SingleRoIExtractor single_roi_extractor_;
-    std::string bone_model_path_;
-    std::string shared_model_path_;
-    std::string bbox_model_path_;
 
-    bool with_shared_;
-    std::unique_ptr<torch::jit::script::Module> bone_module_;
-    std::unique_ptr<torch::jit::script::Module> shared_module_;
-    std::unique_ptr<torch::jit::script::Module> bbox_module_;
+    torch::Tensor rpn_cls_score_;
+    torch::Tensor rpn_bbox_pred_;
+    std::vector<torch::Tensor> fpn_datas_;
 };
 
 #endif // DETECTORFASTERRCNN_HPP

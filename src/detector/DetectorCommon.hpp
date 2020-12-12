@@ -5,8 +5,9 @@
 #include "torch/script.h"
 #include "types.hpp"
 #include "bbox.hpp"
+#include "nms.hpp"
 #include "transforms.hpp"
-#include "AnchorGenerator.hpp"
+#include "AnchorPointGenerator.hpp"
 
 using namespace std::chrono;
 
@@ -16,35 +17,58 @@ public:
     DetectorCommon();
     ~DetectorCommon();
 
-    void LoadParams(const Params& params, torch::DeviceType* device_type);
-    void LoadTracedModule();
-    virtual void DetectOneStage(const cv::Mat& image, std::vector<DetectedBox>& detected_boxes);
-    virtual void DetectTwoStage(const cv::Mat& image, std::vector<DetectedBox>& detected_boxes);
+protected:
+
+    void DetectOneStage(const cv::Mat& image,
+                        std::vector<DetectedBox>& detected_boxes);
+
+    void DetectTwoStage(const cv::Mat& image,
+                        std::vector<DetectedBox>& detected_boxes);
+
+    void LoadCommonParams(const Params& params,
+                          torch::DeviceType* device_type);
+
+    void LoadCommonTracedModule();
+
+    c10::IValue backbone(const cv::Mat& image);
+
+    virtual void first_stage(const cv::Mat& image,
+                             torch::Tensor& bboxes,
+                             torch::Tensor& scores);
+
+    virtual void second_stage(torch::Tensor& proposals,
+                             torch::Tensor& bboxes,
+                             torch::Tensor& scores);
+
+    virtual void get_bboxes(const c10::IValue& output,
+                            torch::Tensor& bboxes,
+                            torch::Tensor& scores);
 
     virtual void get_anchor_generators(const std::vector<int>& anchor_base_sizes,
                                 const std::vector<float>& anchor_scales,
                                 const std::vector<float>& anchor_ratios);
-    //must know the net size
-    virtual void get_anchor_boxes();
 
-protected:
-    void get_proposals(torch::Tensor& output, const std::vector<int>& img_shape,
-                       torch::Tensor& proposals_bboxes, torch::Tensor&  proposals_scores,
-                       bool rpn);
+    //must know the net size
+    virtual void get_anchors();
+
+
 private:
     void init_params();
-
-
 
 protected:
 
     torch::DeviceType * device_;
-
     DetetorType detector_type_;
-    std::string model_path_;
+
     int net_width_;
     int net_height_;
     float conf_thresh_;
+    std::vector<int> strides_;
+    int nms_pre_;
+    int use_sigmoid_;
+    float nms_thresh_;
+    float score_thresh_;
+    int max_per_img_;
 
     TransformParams transform_params_;
     AnchorHeadParams anchor_head_params_;
@@ -52,9 +76,18 @@ protected:
     RoiExtractorParams roi_extractor_params_;
     FPNParams fpn_params_;
 
-    std::vector<AnchorGenerator> anchor_generators_;
+    std::vector<AnchorPointGenerator> anchor_generators_;
     torch::Tensor mlvl_anchors_;
-    std::unique_ptr<torch::jit::script::Module> module_;
+
+    std::string backbone_module_path_;
+    std::unique_ptr<torch::jit::script::Module> backbone_module_;
+
+    bool with_shared_;
+    std::string shared_module_path_;
+    std::unique_ptr<torch::jit::script::Module> shared_module_;
+
+    std::string bbox_module_path_;
+    std::unique_ptr<torch::jit::script::Module> bbox_module_;
 };
 
 #endif // DETERCOTCOMMON_HPP

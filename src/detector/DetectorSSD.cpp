@@ -5,6 +5,7 @@
 #include "DetectorSSD.hpp"
 
 DetectorSSD::DetectorSSD() {
+
     detector_type_ = DetetorType ::SSD;
 }
 
@@ -14,7 +15,7 @@ DetectorSSD::~DetectorSSD() {
 
 void DetectorSSD::LoadParams(const Params& params, torch::DeviceType* device_type) {
 
-    DetectorCommon::LoadParams(params, device_type);
+    LoadCommonParams(params, device_type);
 
     ssd_head_params_ = params.ssd_head_params_;
 
@@ -30,7 +31,8 @@ void DetectorSSD::LoadParams(const Params& params, torch::DeviceType* device_typ
 }
 
 void DetectorSSD::LoadTracedModule(){
-    DetectorCommon::LoadTracedModule();
+
+    LoadCommonTracedModule();
 }
 
 void DetectorSSD::get_min_max_size() {
@@ -71,9 +73,9 @@ void DetectorSSD::get_anchor_generators(const std::vector<int>& anchor_base_size
                                         const std::vector<float>& anchor_scales,
                                         const std::vector<float>& anchor_ratios) {
     get_min_max_size();
-    for (int k = 0; k < anchor_head_params_.anchor_strides_.size(); k++) {
+    for (int k = 0; k < strides_.size(); k++) {
          int base_size = min_sizes_[k];
-         int stride = anchor_head_params_.anchor_strides_[k];
+         int stride = strides_[k];
          std::vector<float> ctr(2);
          ctr[0] = ctr[1] = (stride - 1) / 2.0;
          std::vector<float> scales(2);
@@ -87,7 +89,7 @@ void DetectorSSD::get_anchor_generators(const std::vector<int>& anchor_base_size
              ratios.push_back(ssd_head_params_.anchor_ratios_[k][i]);
          }
          ratios_.push_back(ratios);
-         AnchorGenerator anchor_generator(base_size, scales, ratios, false, ctr);
+         AnchorPointGenerator anchor_generator(base_size, scales, ratios, false, ctr);
 
          anchor_generator.feature_maps_sizes_.clear();
          anchor_generator.feature_maps_sizes_.push_back(ceil(float(net_height_) / stride));
@@ -97,7 +99,8 @@ void DetectorSSD::get_anchor_generators(const std::vector<int>& anchor_base_size
     }
 }
 
-void DetectorSSD::get_anchor_boxes(){
+void DetectorSSD::get_anchors(){
+
    for (int k = 0; k < int(anchor_generators_.size()); k++) {
 
         std::vector<int> ind;
@@ -107,7 +110,7 @@ void DetectorSSD::get_anchor_boxes(){
         torch::Tensor indices = torch::tensor(ind, torch::kLong);
         anchor_generators_[k].base_anchors_ = anchor_generators_[k].base_anchors_.index_select(0, indices);
 
-        torch::Tensor all_anchors = anchor_generators_[k].grid_anchors(anchor_head_params_.anchor_strides_[k], *device_);
+        torch::Tensor all_anchors = anchor_generators_[k].grid_anchors(strides_[k], *device_);
         if (k == 0) {
             mlvl_anchors_ = all_anchors;
         } else {
@@ -118,7 +121,8 @@ void DetectorSSD::get_anchor_boxes(){
 
 
 void DetectorSSD::Detect(const cv::Mat& image, std::vector<DetectedBox>& detected_boxes) {
-    DetectorCommon::DetectOneStage(image, detected_boxes);
+
+    DetectOneStage(image, detected_boxes);
 }
 
 
