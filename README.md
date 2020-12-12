@@ -29,7 +29,7 @@
 reference to   [mmdetection](https://github.com/open-mmlab/mmdetection)
 ## How to Trace
  -  the function **forward_trace_xxx( )** is  for  data  stream
- - using ***get_trace_one_stage.py***  or **get_trace_two_stage.py**   to  get traced weights
+ - using **get_trace_one_stage.py**  or **get_trace_two_stage.py**   to  get traced weights
 
 ## How to Test
  - using your own traced weights  or [download my traced weights](https://pan.baidu.com/s/1g2bQknkPpbmqTbFPXRQTAA)  (9rv5, trained in voc data)
