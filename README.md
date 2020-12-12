@@ -25,13 +25,13 @@
  3. [x] RetinaNet
  4. [x] Faster R-CNN
  
-## How to Train?
+## How to Train
 reference to   [mmdetection](https://github.com/open-mmlab/mmdetection)
-## How to Trace?
- -  the function ***forward_trace_xxx( )*** is  for  data  stream
- - using ***get_trace_one_stage.py***  or ***get_trace_two_stage.py***   to  get traced weights
+## How to Trace
+ -  the function **forward_trace_xxx( )** is  for  data  stream
+ - using ***get_trace_one_stage.py***  or **get_trace_two_stage.py**   to  get traced weights
 
-## How to Test?
+## How to Test
  - using your own traced weights  or [download my traced weights](https://pan.baidu.com/s/1g2bQknkPpbmqTbFPXRQTAA)  (9rv5, trained in voc data)
  - modifiy the file  config/xxx.json
  - check that  the config file path  is correct in example/test_detector.cpp
