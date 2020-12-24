@@ -24,7 +24,7 @@
  2. [x] FCOS
  3. [x] RetinaNet
  4. [x] Faster R-CNN
- 5. [x] Mast R-CNN
+ 5. [x] Mask R-CNN
  
 ## How to Train
 reference to   [mmdetection](https://github.com/open-mmlab/mmdetection)
