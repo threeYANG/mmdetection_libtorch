@@ -55,7 +55,7 @@ set(SRC
     ./detector/DetectorSSD.cpp
     ./detector/DetectorFCOS.cpp
     ./detector/DetectorRetinanet.cpp
-    ./detector/DetectorFasterRcnn.cpp
+    ./detector/DetectorFasterMaskRcnn.cpp
     ./detector/DetectorCommon.cpp
 
     #utils

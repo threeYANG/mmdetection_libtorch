@@ -12,6 +12,7 @@
 
 struct DetectedBox {
     cv::Rect box;
+    cv::Mat seg_mask;
     int label;
     float score;
 
@@ -29,6 +30,7 @@ enum class DetetorType : int
     Retinanet = 1,
     FasterRcnn = 2,
     FCOS = 3,
+    MaskRcnn = 4,
 };
 
 
@@ -68,22 +70,44 @@ struct TransformParams {
     int keep_ratio_;
     int pad_;
     std::vector<int> img_shape_;
+    std::vector<int> ori_shape_;
     float scale_factor_;
-};
-
-struct RoiExtractorParams {
-    std::string type_;
-    int sampling_ratio_;
-    int out_size_;
-    int out_channels_;
-    std::vector<int> featmap_strides_;
-    std::vector<float> target_means_;
-    std::vector<float> target_stds_;
 };
 
 struct FPNParams {
     int out_channels_;
     int num_outs_;
+};
+
+struct RoiLayerParams {
+    std::string type_;
+    int sampling_ratio_;
+    int out_size_;
+    int out_channels_;
+    std::vector<int> featmap_strides_;
+};
+
+struct BboxRoiParams {
+    RoiLayerParams roi_layer_;
+    std::vector<float> target_means_;
+    std::vector<float> target_stds_;
+    std::string model_path_;
+};
+
+struct MaskRoiParams {
+    RoiLayerParams roi_layer_;
+    int num_convs_;
+    int conv_out_channels_;
+    int num_classes_;
+    int in_channels_;
+    float mask_thr_binary_;
+    std::string model_path_;
+};
+
+struct ROIHeadParams {
+    BboxRoiParams bbox_roi_head_;
+    bool with_mask_;
+    MaskRoiParams mask_roi_head_;
 };
 
 struct Params {
@@ -106,7 +130,7 @@ public:
     SSDHeadParams ssd_head_params_;
     RetinaHeadParams retina_head_params_;
     RPNHeadParams rpn_head_params_;
-    RoiExtractorParams roi_extractor_params_;
+    ROIHeadParams roi_head_params_;
     FPNParams fpn_params_;
 
 

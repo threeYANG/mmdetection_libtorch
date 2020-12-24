@@ -36,9 +36,9 @@ protected:
                              torch::Tensor& bboxes,
                              torch::Tensor& scores);
 
-    virtual void second_stage(torch::Tensor& proposals,
-                             torch::Tensor& bboxes,
-                             torch::Tensor& scores);
+    virtual void second_stage(const torch::Tensor& proposals,
+                              torch::Tensor& bbox_results,
+                              torch::Tensor& segm_results);
 
     virtual void get_bboxes(const c10::IValue& output,
                             torch::Tensor& bboxes,
@@ -73,7 +73,6 @@ protected:
     TransformParams transform_params_;
     AnchorHeadParams anchor_head_params_;
     RPNHeadParams rpn_head_params_;
-    RoiExtractorParams roi_extractor_params_;
     FPNParams fpn_params_;
 
     std::vector<AnchorPointGenerator> anchor_generators_;
@@ -82,12 +81,6 @@ protected:
     std::string backbone_module_path_;
     std::unique_ptr<torch::jit::script::Module> backbone_module_;
 
-    bool with_shared_;
-    std::string shared_module_path_;
-    std::unique_ptr<torch::jit::script::Module> shared_module_;
-
-    std::string bbox_module_path_;
-    std::unique_ptr<torch::jit::script::Module> bbox_module_;
 };
 
 #endif // DETERCOTCOMMON_HPP

@@ -20,8 +20,6 @@ void split(const std::string& s, std::vector<std::string>& tokens, char delim = 
 DetectorCommon::DetectorCommon()
 {
     backbone_module_ = nullptr;
-    shared_module_ = nullptr;
-    bbox_module_ = nullptr;
     device_ = nullptr;
 }
 
@@ -50,23 +48,8 @@ void DetectorCommon::LoadCommonParams(const Params& params, torch::DeviceType* d
     transform_params_ = params.transform_params_;
     anchor_head_params_ = params.anchor_head_params_;
     rpn_head_params_ = params.rpn_head_params_;
-    roi_extractor_params_ = params.roi_extractor_params_;
     fpn_params_ = params.fpn_params_;
-
-    std::vector<std::string> tokens;
-    split(params.module_path_, tokens, ',');
-    assert (tokens.size() > 0);
-    backbone_module_path_ = tokens[0];
-    if (tokens.size() == 2) {
-        bbox_module_path_ = tokens[1];
-        with_shared_ = false;
-    }
-    if (tokens.size() == 3) {
-       shared_module_path_ = tokens[1];
-       bbox_module_path_ = tokens[2];
-       with_shared_ = true;
-    }
-
+    backbone_module_path_ = params.module_path_;
 }
 
 
@@ -169,9 +152,9 @@ c10::IValue DetectorCommon::backbone(const cv::Mat& image) {
 }
 
 
-void DetectorCommon::second_stage(torch::Tensor& proposals,
-                                  torch::Tensor& bboxes,
-                                  torch::Tensor& scores) {
+void DetectorCommon::second_stage(const torch::Tensor& proposals,
+                                  torch::Tensor& bbox_results,
+                                  torch::Tensor& segm_results) {
 
 }
 
@@ -201,7 +184,8 @@ void DetectorCommon::DetectOneStage(const cv::Mat& image, std::vector<DetectedBo
     torch::Tensor nms_results = multiclass_nms(bboxes, scores, score_thresh_,
                                                nms_thresh_, max_per_img_);
 
-    bbox2result(nms_results, conf_thresh_, detected_boxes);
+    torch::Tensor segm_result;
+    bbox2result(nms_results, segm_result, conf_thresh_, detected_boxes);
 }
 
 void DetectorCommon::DetectTwoStage(const cv::Mat& image,
@@ -212,18 +196,12 @@ void DetectorCommon::DetectTwoStage(const cv::Mat& image,
     first_stage(image, proposals_bboxes, proposals_scores);
 
     torch::Tensor proposals = torch::cat({proposals_bboxes, proposals_scores.unsqueeze_(1)}, 1);
-    torch::Tensor bboxes;
-    torch::Tensor scores;
-    second_stage(proposals, bboxes, scores);
 
+    torch::Tensor bbox_results;
+    torch::Tensor segm_results;
+    second_stage(proposals, bbox_results, segm_results);
 
-    torch::Tensor scale_factor = torch::tensor(transform_params_.scale_factor_);
-    bboxes = bboxes / scale_factor;
-    torch::Tensor nms_results = multiclass_nms(bboxes, scores, score_thresh_,
-                                               nms_thresh_, max_per_img_);
-
-    bbox2result(nms_results, conf_thresh_, detected_boxes);
-
+    bbox2result(bbox_results, segm_results, conf_thresh_, detected_boxes);
 
 }
 

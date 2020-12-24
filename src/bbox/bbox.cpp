@@ -58,8 +58,8 @@ torch::Tensor delta2bbox(const torch::Tensor& rois, const torch::Tensor& deltas,
 }
 
 
-void bbox2result(torch::Tensor& result, float thresh,
-                std::vector<DetectedBox>& detected_boxes) {
+void bbox2result(torch::Tensor& result, torch::Tensor& segm_results,
+                 float thresh, std::vector<DetectedBox>& detected_boxes) {
 
     if (result.sizes()[0] == 0) {
         return;
@@ -72,12 +72,21 @@ void bbox2result(torch::Tensor& result, float thresh,
         float score = result_data[i][4];
         if (score > thresh) {
             DetectedBox detected_box;
-            detected_box.box.x = result_data[i][0];
-            detected_box.box.y = result_data[i][1];
-            detected_box.box.width = result_data[i][2] - result_data[i][0];
-            detected_box.box.height = result_data[i][3] - result_data[i][1];
+            int xmin = int(result_data[i][0]);
+            int ymin = int(result_data[i][1]);
+            int xmax = int(result_data[i][2]);
+            int ymax = int(result_data[i][3]);
+            detected_box.box.x = xmin;
+            detected_box.box.y = ymin;
+            detected_box.box.width = xmax - xmin;
+            detected_box.box.height = ymax - ymin;
             detected_box.label = result_data[i][5];
             detected_box.score = score;
+
+            if (segm_results.defined()) {
+                torch::Tensor mask_box = segm_results[i].slice(1, xmin, xmax).slice(0, ymin, ymax).cpu().toType(torch::kU8);
+                detected_box.seg_mask = cv::Mat(cv::Size(xmax - xmin, ymax - ymin) ,CV_8U, mask_box.data_ptr()) * 255;
+            }
             detected_boxes.emplace_back(detected_box);
         }
     }

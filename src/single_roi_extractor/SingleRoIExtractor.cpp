@@ -5,11 +5,11 @@ SingleRoIExtractor::SingleRoIExtractor()
 
 }
 
-void SingleRoIExtractor::init_params(const RoiExtractorParams& roi_extractor_params){
-    out_size_ = roi_extractor_params.out_size_;
-    out_channels_ = roi_extractor_params.out_channels_;
-    featmap_strides_ = roi_extractor_params.featmap_strides_;
-    sampling_ratio_ = roi_extractor_params.sampling_ratio_;
+void SingleRoIExtractor::init_params(const RoiLayerParams& roi_layer){
+    out_size_ = roi_layer.out_size_;
+    out_channels_ = roi_layer.out_channels_;
+    featmap_strides_ = roi_layer.featmap_strides_;
+    sampling_ratio_ = roi_layer.sampling_ratio_;
     finest_scale_ = 56; //Default: 56
     roi_scale_factor_ = 0; // not support roi_scale_factor > 0;
 
@@ -53,7 +53,7 @@ torch::Tensor SingleRoIExtractor::map_roi_levels(const torch::Tensor& rois, int 
     return target_lvls;
 }
 
-torch::Tensor SingleRoIExtractor::bbox_roi_extractor(const std::vector<torch::Tensor>& feats, const torch::Tensor& rois) {
+torch::Tensor SingleRoIExtractor::roi_extractor(const std::vector<torch::Tensor>& feats, const torch::Tensor& rois) {
    torch::Tensor target_lvls = map_roi_levels(rois, featmap_strides_.size());
    torch::Tensor roi_feats = feats[0].new_zeros({rois.size(0), out_channels_, out_size_, out_size_});
    for(int i =0 ; i < featmap_strides_.size(); i++)

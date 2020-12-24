@@ -75,6 +75,9 @@ void transform(const cv::Mat& image, torch::Tensor& tensor_image,
                int& net_width, int& net_height,
                torch::DeviceType* device)
 {
+    transform_params.ori_shape_.push_back(image.cols);
+    transform_params.ori_shape_.push_back(image.rows);
+    transform_params.ori_shape_.push_back(image.channels());
     //resize
     cv::Mat image_resize;
     if (transform_params.keep_ratio_ == 0) {

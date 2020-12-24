@@ -1,0 +1,69 @@
+{
+"DetectorType" : "FasterRCNN",
+"model_path": "/home/dl/Project/mmdetection_libtorch/weights/fasterrcnn_tracedbone.pt",
+"conf_thr" : 0.5,
+"strides"  : [4, 8, 16, 32, 64],
+"use_sigmoid" : 1,
+"nms_pre" : 1000,
+"nms_iou_thr"  : 0.7,
+"score_thr"  : 0.3,
+"max_per_img"  : -1,
+
+"AnchorHead" : {
+    "target_means" : [0.0, 0.0, 0.0, 0.0],
+    "target_stds" : [1, 1, 1, 1]
+},
+
+"RPNHead" : {
+    "class_num" : 2,
+    "anchor_scales" : [8],
+    "anchor_ratios" : [0.5, 1.0, 2.0],
+    "nms_across_levels" : 0,
+    "nms_post" : 1000,
+    "max_num" : 1000,
+    "min_bbox_size"  : 0
+},
+
+"FPN" : {
+   "out_channels" : 256,
+   "num_outs" : 5
+},
+
+"Transforms" : {
+   "mean" : [123.675, 116.28, 103.53],
+   "std" : [58.395, 57.12, 57.375],
+   "to_rgb" : 1,
+   "img_scale" : [1000, 600],
+   "keep_ratio" : 1,
+   "pad" : 32
+},
+
+
+"bbox_roi_head" : {
+   "type": "RoIAlign",
+   "out_size" : 7,
+   "sampling_ratio" :0,
+   "out_channels" : 256,
+   "featmap_strides" : [4, 8, 16, 32],
+   "target_means" : [0.0, 0.0, 0.0, 0.0],
+   "target_stds" : [0.1, 0.1, 0.2, 0.2],
+   "model_path" : "/home/dl/Project/mmdetection_libtorch/weights/fasterrcnn_tracedbbox.pt"
+   },
+
+"with_mask" : 0,
+
+"mask_roi_head" : {
+   "type": "RoIAlign",
+   "out_size" : 14,
+   "sampling_ratio" :0,
+   "out_channels" : 256,
+   "featmap_strides" : [4, 8, 16, 32],
+   "num_convs" : 4,
+   "in_channels" : 256,
+   "conv_out_channels" : 256,
+   "num_classes" : 80,
+   "model_path" : "/home/dl/Project/mmdetection_libtorch/weights/fasterrcnn_tracedmask.pt"
+   }
+}
+
+

@@ -28,8 +28,8 @@ public:
     SingleRoIExtractor();
     ~SingleRoIExtractor();
 
-    void init_params(const RoiExtractorParams& roi_extractor_params);
-    torch::Tensor bbox_roi_extractor(const std::vector<torch::Tensor>& feats, const torch::Tensor& rois);
+    void init_params(const RoiLayerParams& roi_layer);
+    torch::Tensor roi_extractor(const std::vector<torch::Tensor>& feats, const torch::Tensor& rois);
 private:
     torch::Tensor map_roi_levels(const torch::Tensor& rois, int num_levels);
     void build_roi_align_layer();

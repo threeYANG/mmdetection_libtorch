@@ -17,7 +17,7 @@ torch::Tensor delta2bbox(const torch::Tensor& anchors, const torch::Tensor& delt
                          const std::vector<float>& stds = {1.0, 1.0, 1.0, 1.0},
                          float wh_ratio_clip = 16.0 / 1000.0);
 
-void bbox2result(torch::Tensor& result, float thresh,
+void bbox2result(torch::Tensor& result, torch::Tensor& segm_results, float thresh,
                  std::vector<DetectedBox>& detected_boxes);
 
 torch::Tensor bbox2roi(const torch::Tensor& proposals);

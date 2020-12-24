@@ -57,8 +57,10 @@ torch::Tensor AnchorPointGenerator::grid_anchors(int stride, torch::DeviceType d
     int feat_h = feature_maps_sizes_[0];
     int feat_w = feature_maps_sizes_[1];
 
-    torch::Tensor shift_x = torch::arange(0, feat_w, device = device) * stride;
-    torch::Tensor shift_y = torch::arange(0, feat_h, device = device) * stride;
+//    torch::Tensor shift_x = torch::arange(0, feat_w, device = device) * stride;
+//    torch::Tensor shift_y = torch::arange(0, feat_h, device = device) * stride;
+    torch::Tensor shift_y = torch::arange(0, feat_h, at::device(device)) * stride;
+    torch::Tensor shift_x = torch::arange(0, feat_w, at::device(device)) * stride;
 
     // shift_y is the rows, shiftx is the col
     std::vector<torch::Tensor> args = torch::meshgrid({shift_y, shift_x});

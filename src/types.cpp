@@ -6,7 +6,7 @@
 using namespace Json;
 using namespace tunicornvideostruct;
 
-std::vector<std::string> detector_types = {"SSD", "Retinanet", "FasterRCNN", "FCOS"};
+std::vector<std::string> detector_types = {"SSD", "Retinanet", "FasterRCNN", "FCOS", "MaskRCNN"};
 
 
 
@@ -111,26 +111,46 @@ void ReadRPNHeadParams(const Value& root, RPNHeadParams& RPNHead) {
 
 }
 
-void ReadRoiExtractorParams(const Value& root, RoiExtractorParams& RoiExtractor) {
-    RoiExtractor.type_ = root["RoiExtractor"]["type"].asString();
-    RoiExtractor.out_size_ = root["RoiExtractor"]["out_size"].asInt();
-    RoiExtractor.sampling_ratio_ = root["RoiExtractor"]["sampling_ratio"].asInt();
-    RoiExtractor.out_channels_ = root["RoiExtractor"]["out_channels"].asInt();
+void ReadRoiHeadParams(const Value& root, ROIHeadParams& RoiHead) {
+    RoiHead.bbox_roi_head_.roi_layer_.type_ = root["bbox_roi_head"]["type"].asString();
+    RoiHead.bbox_roi_head_.model_path_ = root["bbox_roi_head"]["model_path"].asString();
+    RoiHead.bbox_roi_head_.roi_layer_.out_size_ = root["bbox_roi_head"]["out_size"].asInt();
+    RoiHead.bbox_roi_head_.roi_layer_.sampling_ratio_ = root["bbox_roi_head"]["sampling_ratio"].asInt();
+    RoiHead.bbox_roi_head_.roi_layer_.out_channels_ = root["bbox_roi_head"]["out_channels"].asInt();
+    RoiHead.bbox_roi_head_.roi_layer_.type_ = root["bbox_roi_head"]["type"].asString();
 
-    const Value featmap_strides_arrays = root["RoiExtractor"]["featmap_strides"];
+    Value featmap_strides_arrays = root["bbox_roi_head"]["featmap_strides"];
     for (const auto & featmap_strides_array : featmap_strides_arrays) {
-        RoiExtractor.featmap_strides_.push_back(featmap_strides_array.asInt());
+        RoiHead.bbox_roi_head_.roi_layer_.featmap_strides_.push_back(featmap_strides_array.asInt());
     }
     //target_means_;
-    const Value target_means_arrays = root["RoiExtractor" ]["target_means"];
+    const Value target_means_arrays = root["bbox_roi_head" ]["target_means"];
     for (const auto & target_means_array: target_means_arrays) {
-        RoiExtractor.target_means_.push_back(target_means_array.asFloat());
+        RoiHead.bbox_roi_head_.target_means_.push_back(target_means_array.asFloat());
     }
     //target_stds_;
-    const Value target_stds_arrays = root["RoiExtractor" ]["target_stds"];
+    const Value target_stds_arrays = root["bbox_roi_head" ]["target_stds"];
     for (const auto & target_stds_array: target_stds_arrays) {
-        RoiExtractor.target_stds_.push_back(target_stds_array.asFloat());
+        RoiHead.bbox_roi_head_.target_stds_.push_back(target_stds_array.asFloat());
     }
+
+    RoiHead.with_mask_ = root["with_mask"].asBool();
+    RoiHead.mask_roi_head_.model_path_ = root["mask_roi_head"]["model_path"].asString();
+    RoiHead.mask_roi_head_.roi_layer_.type_ = root["mask_roi_head"]["type"].asString();
+    RoiHead.mask_roi_head_.roi_layer_.out_size_ = root["mask_roi_head"]["out_size"].asInt();
+    RoiHead.mask_roi_head_.roi_layer_.sampling_ratio_ = root["mask_roi_head"]["sampling_ratio"].asInt();
+    RoiHead.mask_roi_head_.roi_layer_.out_channels_ = root["mask_roi_head"]["out_channels"].asInt();
+
+    featmap_strides_arrays = root["mask_roi_head"]["featmap_strides"];
+    for (const auto & featmap_strides_array : featmap_strides_arrays) {
+        RoiHead.mask_roi_head_.roi_layer_.featmap_strides_.push_back(featmap_strides_array.asInt());
+    }
+
+    RoiHead.mask_roi_head_.num_convs_ = root["mask_roi_head"]["num_convs"].asInt();
+    RoiHead.mask_roi_head_.in_channels_ = root["mask_roi_head"]["in_channels"].asInt();
+    RoiHead.mask_roi_head_.num_classes_ = root["mask_roi_head"]["num_classes"].asInt();
+    RoiHead.mask_roi_head_.conv_out_channels_ = root["mask_roi_head"]["conv_out_channels"].asInt();
+    RoiHead.mask_roi_head_.mask_thr_binary_ = root["mask_roi_head"]["mask_thr_binary"].asFloat();
 }
 
 void ReadFPNParams(const Value& root, FPNParams& fpn_params) {
@@ -144,7 +164,7 @@ int Params::Read(const std::string& config_file) {
     std::ifstream ifs(config_file);
     bool ret = reader.parse(ifs, root);
     if(!ret) {
-        std::cout<<"can not parse "<<config_file;
+        std::cout<<"failed parse "<<config_file;
         return -1;
     }
     int type_ids = find_type(root["DetectorType"].asString());
@@ -154,7 +174,7 @@ int Params::Read(const std::string& config_file) {
         return -1;
     }
     detector_type_ = static_cast<DetetorType>(type_ids );
-    module_path_ = root["modelPath"].asString();
+    module_path_ = root["model_path"].asString();
     conf_thresh_ = root["conf_thr"].asFloat();
     //strides
     const Value step_arrays = root["strides"];
@@ -182,11 +202,12 @@ int Params::Read(const std::string& config_file) {
     } else if(detector_type_ == DetetorType::Retinanet) {
         ReadAnchorHeadParams(root, anchor_head_params_);
         ReadRetinaHeadParams(root, retina_head_params_);
-    } else if (detector_type_ == DetetorType::FasterRcnn) {
+    } else if (detector_type_ == DetetorType::FasterRcnn ||
+               detector_type_ == DetetorType::MaskRcnn) {
         ReadAnchorHeadParams(root, anchor_head_params_);
         ReadRPNHeadParams(root, rpn_head_params_);
-        ReadRoiExtractorParams(root, roi_extractor_params_);
         ReadFPNParams(root, fpn_params_);
+        ReadRoiHeadParams(root, roi_head_params_);
     }
     return 0;
 }

@@ -1,6 +1,6 @@
 {
 "DetectorType" : "SSD",
-"modelPath": "/home/dl/Project/mmdetection_libtorch/weights/ssd300_voc_trace.pt",
+"model_path": "/home/dl/Project/mmdetection_libtorch/weights/ssd300_voc_trace.pt",
 "conf_thr" : 0.5,
 "strides" : [8, 16, 32, 64, 100, 300],
 "use_sigmoid" : 0,

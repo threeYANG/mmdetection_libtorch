@@ -1,6 +1,6 @@
 {
 "DetectorType" : "FCOS",
-"modelPath": "/home/dl/Project/mmdetection_libtorch/weights/fcos_traced_epoch_6.pt",
+"model_path": "/home/dl/Project/mmdetection_libtorch/weights/fcos_traced_epoch_6.pt",
 "conf_thr" : 0.3,
 "strides"  : [8, 16, 32, 64, 128],
 "use_sigmoid" : 1,
